@@ -415,10 +415,10 @@ function buttonEvent (d) {
 				updateVisualization(JSON.parse(xhr_object.responseText));
 			}
 		}
-		var cypherRequest = '{"query":"MATCH (n)-[]->(m) RETURN n.name, m.name LIMIT 5","params":{}}';
+		//var cypherRequest = '{"query":"MATCH (n)-[]->(m) RETURN n.name, m.name LIMIT 5","params":{}}';
 		var cypherRequest2 = cypherOutput.text();
 
-		console.log(cypherRequest);
+		//console.log(cypherRequest);
 		console.log(cypherRequest2);
 		xhr_object.send(cypherRequest2);
 	}
