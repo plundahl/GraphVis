@@ -287,9 +287,56 @@ function restart() {
 		;
 
 
-	printCypherOutput();
+	//printCypherOutput();
+  printJSONOutput();
 
 	force.start();
+}
+
+/*
+Can be done shorter and easier but meh, serves it purpose, prints out a JSON presentation of the links and nodes ignoring d3js unique values.
+*/
+var d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
+function printJSONOutput () {
+  console.log("Attempting to create JSON output");
+  var textToTextField="";
+  textToTextField += '{"nodes":[';
+
+     for(var iterator = 0; iterator < nodes.length; iterator++) {
+       var keys = _.keys(nodes[iterator]);
+       textToTextField += '{';
+       for(var key = 0; key < keys.length; key++){
+         if(!_.contains(d3NodeKeyValues, keys[key])) {
+           textToTextField += keys[key]+':'+nodes[iterator][keys[key]]+',';
+         }
+       }
+       if(textToTextField.charAt(textToTextField.length -1)==',') {
+         textToTextField = textToTextField.slice(0, -1); //"Removes" last character
+       }
+       textToTextField += '},';
+     }
+  if(textToTextField.charAt(textToTextField.length - 1)==',') {
+    textToTextField = textToTextField.slice(0, -1); //"Removes" last character
+  }
+  textToTextField += '], "links":[';
+  for (var iterator = 0; iterator < links.length; iterator++) {
+    var keys = _.keys(links[iterator]);
+    textToTextField += '{';
+    for(var key = 0; key < keys.length; key++) {
+      if(!_.contains(d3NodeKeyValues, keys[key])) {
+        textToTextField += keys[key]+':'+links[iterator][keys[key]]+',';
+      }
+    }
+    textToTextField+= 'source:'+links[iterator]["source"].index+','
+    +'target:'+links[iterator]["target"].index+'},';
+  }
+  if(textToTextField.charAt(textToTextField.length - 1)==',') {
+    textToTextField = textToTextField.slice(0, -1); //"Removes" last character
+  }
+  textToTextField += ']}';
+  console.log(textToTextField);
+  cypherOutput
+    .text(textToTextField);
 }
 
 function printCypherOutput () {
@@ -303,13 +350,6 @@ function printCypherOutput () {
 		}
 		textToTextField += "("+String.fromCharCode(links[0].source.index+65)+")-[]->("+String.fromCharCode(links[0].target.index+65)+")";
 		textToTextField += " RETURN ";
-		/*if(nodes.length>1) {
-			for(var i = nodes.length-1; i>0; i--) {
-				textToTextField += String.fromCharCode(nodes[i].index+65)+".name, ";
-			}
-		}
-		textToTextField += String.fromCharCode(nodes[0].index+65)+".name";
-		*/
 		if(links.length>1) {
 			for(var i = links.length-1; i>0; i--) {
 				textToTextField += String.fromCharCode(links[i].source.index+65)+".name, "+String.fromCharCode(links[i].target.index+65)+".name, ";
@@ -320,13 +360,8 @@ function printCypherOutput () {
 		textToTextField += '","params":{}}';
 	}
 
-	/*links.forEach(function(link) {
-		textToTextField += "("+String.fromCharCode(link.source.index+65)+")-[r]->("+String.fromCharCode(link.target.index+65)+")\n";
-	});*/
-
 	cypherOutput
 		.text(textToTextField);
-	//alert(cypherOutput.text());
 }
 
 function temporaryConsoleOutputHelpFunction (link) {
@@ -372,7 +407,7 @@ function buttonEvent (d) {
 		var xhr_object = null;
 
 		var xhr_object = new XMLHttpRequest();
-		xhr_object.open("POST", "http://localhost:7474/db/data/cypher");
+		xhr_object.open("POST", "http://localhost:8888/db/data/cypher");
 		xhr_object.setRequestHeader('Accept-Language', 'sv-se');
 		xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
 		xhr_object.onreadystatechange = function() {
