@@ -327,8 +327,8 @@ function printJSONOutput () {
         textToTextField += keys[key]+':'+links[iterator][keys[key]]+',';
       }
     }
-    textToTextField+= 'source:'+links[iterator]["source"].index+','
-    +'target:'+links[iterator]["target"].index+'},';
+    textToTextField+= '"source":'+links[iterator]["source"].index+','
+    +'"target":'+links[iterator]["target"].index+'},';
   }
   if(textToTextField.charAt(textToTextField.length - 1)==',') {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character

@@ -34,7 +34,10 @@ public class RDFDatabase {
 	
 	public String queryDB(String queryString)
 	{
-        Query query = QueryFactory.create(queryString) ;
+    System.out.println(queryString);
+    if(true)
+      return queryString;    
+    Query query = QueryFactory.create(queryString) ;
         QueryExecution qexec = QueryExecutionFactory.create(query, model) ;
         try {
           ResultSet results = qexec.execSelect() ;
