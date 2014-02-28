@@ -11,6 +11,8 @@ import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.util.FileManager;
+import com.google.gson.Gson;
+import com.google.gson.reflect.*;
 
 public class RDFDatabase {
 	private static Model model;
@@ -34,6 +36,12 @@ public class RDFDatabase {
 	
 	public String queryDB(String queryString)
 	{
+    Graph g = new Graph();
+    //Gson gson = new Gson();
+    //Graph g = gson.fromJson(queryString, Graph.class);
+
+    System.out.println(g);
+    System.out.println(g.nodes.get(0));
     System.out.println(queryString);
     if(true)
       return queryString;    
