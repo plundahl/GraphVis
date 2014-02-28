@@ -11,8 +11,6 @@ import com.hp.hpl.jena.query.ResultSetFormatter;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.util.FileManager;
-import com.google.gson.Gson;
-import com.google.gson.reflect.*;
 
 public class RDFDatabase {
 	private static Model model;
