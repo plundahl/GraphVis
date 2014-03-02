@@ -248,7 +248,7 @@ function printJSONOutput () {
        textToTextField += '{';
        for(var key = 0; key < keys.length; key++){
          if(!_.contains(d3NodeKeyValues, keys[key])) {
-           textToTextField += keys[key]+':'+nodes[iterator][keys[key]]+',';
+           textToTextField += +'"'+keys[key]+'":'+nodes[iterator][keys[key]]+',';
          }
        }
        if(textToTextField.charAt(textToTextField.length -1)==',') {
@@ -265,7 +265,7 @@ function printJSONOutput () {
     textToTextField += '{';
     for(var key = 0; key < keys.length; key++) {
       if(!_.contains(d3NodeKeyValues, keys[key])) {
-        textToTextField += keys[key]+':'+links[iterator][keys[key]]+',';
+        textToTextField += '"'+keys[key]+'":'+links[iterator][keys[key]]+',';
       }
     }
     textToTextField+= '"source":'+links[iterator]["source"].index+','
