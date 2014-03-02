@@ -30,17 +30,16 @@ public class RDFDatabase {
         model.read( in, "" );
 	
 	    System.out.println("RDFCreated and Waiting");
+      System.out.println(">> THIS IS A TEST ENVIRONMENT, THE RESULTING GRAPH IS A RANDOM GRAPH <<");
 	}
 	
 	public String queryDB(String queryString)
 	{
-    Graph g = new Graph();
-    //Gson gson = new Gson();
-    //Graph g = gson.fromJson(queryString, Graph.class);
+    //Size of the graph that will be returned in the test-environment.
+    //Change here for diffrent size of graphs.
+    Graph g = new Graph(100);
+    queryString = g.toJson();
 
-    System.out.println(g);
-    System.out.println(g.nodes.get(0));
-    System.out.println(queryString);
     if(true)
       return queryString;    
     Query query = QueryFactory.create(queryString) ;

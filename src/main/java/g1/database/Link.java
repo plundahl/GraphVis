@@ -4,6 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Link {
-  private int source;
-  private int target;
+  public int source;
+  public int target;
 }
