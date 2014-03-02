@@ -58,8 +58,6 @@ function updateVisualization( returnedObject ) {
 	visualizationLinks = [];
 	visualizationMap = new Object();
 
-	//orderNeo4jGraphInOneGraph( returnedObject );
-	//orderNeo4jGraphInMultipleGraphs( returnedObject );
   orderJSONinOneGraph( returnedObject );
 
 	visualizationForce
@@ -84,79 +82,14 @@ function updateVisualization( returnedObject ) {
 		.attr("r", 5)
 		.style("fill", "yellow")
 		.call(visualizationForce.drag);
-
 }
 
 /*
 Gets the JSON structured in the same manner as http://bl.ocks.org/mbostock/4062045 .
 */
 function orderJSONinOneGraph( returnedObject ) {
-  console.log("Ordering JSON in one graph");
   visualizationNodes = returnedObject.nodes;
   visualizationLinks = returnedObject.links;
-}
-
-/*
-Order the data returned from Neo4j (SELECT * RETURN *.name) as multiple tables shown as graphs.
-*/
-function orderNeo4jGraphInMultipleGraphs( returnedObject ) {
-	/*
-	Note, this function needs to be changed for large graphs since it will take unnecessarily long time.
-	*/
-	console.log("Ordering in multiple graphs");
-	var numberOfInternalIterations = returnedObject.columns.length;
-	console.log("Number of nodes in each graph is "+numberOfInternalIterations/2);
-	for(var i = returnedObject.data.length-1; i>=0; i--) {
-		var nodesInSubgraph = [];
-		for(var j = numberOfInternalIterations-1; j>=0; j--) {
-			var handledNode = returnedObject.data[i][j];
-			if(nodesInSubgraph.indexOf(returnedObject.data[i][j])<0) { //If does not exist in the subgraph already
-				nodesInSubgraph.push(returnedObject.data[i][j]);
-			}
-		}
-
-		var offsetInVisualizationNodes = visualizationNodes.length;
-		for(var k = nodesInSubgraph.length-1; k>=0; k--) {
-			visualizationNodes.push({name: nodesInSubgraph[k]});
-		}
-
-		for(var j = numberOfInternalIterations-2; j>=0; j-=2) {
-			var firstNode = returnedObject.data[i][j];
-			var secondNode = returnedObject.data[i][j+1];
-			visualizationLinks.push({source: (nodesInSubgraph.indexOf(firstNode)+offsetInVisualizationNodes), target: (nodesInSubgraph.indexOf(secondNode)+offsetInVisualizationNodes)});
-		}
-	}
-}
-
-/*
-Order the data returned from Neo4j (SELECT * RETURN *.name) as one graph.
-Note, at this stage this function has not been tested.
-*/
-function orderNeo4jGraphInOneGraph( meh ) {
-	var columnLength = meh.columns.length;
-	var numberOfInternalIterations = columnLength/2;
-	for(var i = meh.data.length-1; i>=0; i--) {
-		for(var j = numberOfInternalIterations-2; j >= 0; j -= 2) {
-			var firstNode = meh.data[i][j];
-			var secondNode = meh.data[i][j+1];
-			//console.log(firstNode);
-			//console.log(visualizationMap[firstNode]);
-			if(typeof visualizationMap[firstNode] == 'undefined') {
-				visualizationMap[firstNode] = visualizationNodes.length;
-				visualizationNodes.push(firstNode);
-			}
-			if(typeof visualizationMap[secondNode] == 'undefined') {
-				visualizationMap[secondNode] = visualizationNodes.length;
-				visualizationNodes.push(secondNode);
-			}
-
-			var firstNodeIndex = visualizationMap[firstNode];
-			var secondNodeIndex = visualizationMap[secondNode];
-
-			var newLink = {source:firstNodeIndex, target:secondNodeIndex};
-			visualizationLinks.push(newLink);
-		}
-	}
 }
 
 var force = d3
@@ -199,7 +132,7 @@ var svg = d3
 	})
 	;
 
-var cypherOutput = d3
+var databaseOutput = d3
 	.select("body")
 	.select("div")
 	.append("textarea")
@@ -265,6 +198,11 @@ function tick() {
 function restart() {
 	link = link.data(links);
 
+  link
+    .exit()
+    .remove()
+    ;
+
 	link
 		.enter()
 		.insert("path", ".node")
@@ -273,6 +211,11 @@ function restart() {
 		;
 
 	node = node.data(nodes);
+
+  node
+    .exit()
+    .remove()
+    ;
 
 	node
 		.enter()
@@ -286,8 +229,6 @@ function restart() {
 		.call(dragHandler)
 		;
 
-
-	//printCypherOutput();
   printJSONOutput();
 
 	force.start();
@@ -335,38 +276,8 @@ function printJSONOutput () {
   }
   textToTextField += ']}';
   console.log(textToTextField);
-  cypherOutput
+  databaseOutput
     .text(textToTextField);
-}
-
-function printCypherOutput () {
-	var textToTextField="";
-	textToTextField += '{"query":"MATCH ';
-	if(links.length>0) {
-		if(links.length>1) {
-			for(var i = links.length-1; i>0; i--) {
-				textToTextField += "("+String.fromCharCode(links[i].source.index+65)+")-[]->("+String.fromCharCode(links[i].target.index+65)+"), ";
-			}
-		}
-		textToTextField += "("+String.fromCharCode(links[0].source.index+65)+")-[]->("+String.fromCharCode(links[0].target.index+65)+")";
-		textToTextField += " RETURN ";
-		if(links.length>1) {
-			for(var i = links.length-1; i>0; i--) {
-				textToTextField += String.fromCharCode(links[i].source.index+65)+".name, "+String.fromCharCode(links[i].target.index+65)+".name, ";
-			}
-		}
-		textToTextField += String.fromCharCode(links[0].source.index+65)+".name, "+String.fromCharCode(links[0].target.index+65)+".name";
-
-		textToTextField += '","params":{}}';
-	}
-
-	cypherOutput
-		.text(textToTextField);
-}
-
-function temporaryConsoleOutputHelpFunction (link) {
-	console.log(link);
-	console.log("("+link.source.index+")-->("+link.target.index+")");
 }
 
 //See http://bl.ocks.org/mbostock/1153292
@@ -407,7 +318,7 @@ function buttonEvent (d) {
 		var xhr_object = null;
 
 		var xhr_object = new XMLHttpRequest();
-		xhr_object.open("POST", "http://localhost:8888/db/data/cypher");
+		xhr_object.open("POST", "http://localhost:8888/db/jena");
 		xhr_object.setRequestHeader('Accept-Language', 'sv-se');
 		xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
 		xhr_object.onreadystatechange = function() {
@@ -415,12 +326,10 @@ function buttonEvent (d) {
 				updateVisualization(JSON.parse(xhr_object.responseText));
 			}
 		}
-		//var cypherRequest = '{"query":"MATCH (n)-[]->(m) RETURN n.name, m.name LIMIT 5","params":{}}';
-		var cypherRequest2 = cypherOutput.text();
+		var requestToDatabase = databaseOutput.text();
 
-		//console.log(cypherRequest);
-		console.log(cypherRequest2);
-		xhr_object.send(cypherRequest2);
+		console.log(requestToDatabase);
+		xhr_object.send(requestToDatabase);
 	}
 }
 
