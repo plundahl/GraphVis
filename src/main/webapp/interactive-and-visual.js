@@ -1,6 +1,64 @@
 //Heavily inspired by http://bl.ocks.org/mbostock/929623
+/*
+Static variables
+*/
 var width = 1000;
 var height = 250;
+var heightVisualization = 250;
+
+var anchorAttributes = ["x", "y","fixed","labels","node"];
+
+developing = false;
+var labelsAreEnabledThroughForceLayout = false;
+
+if(developing) {
+  height=200;
+  width=600;
+  heightVisualization=100;
+}
+
+/*
+Contains variables used when labels to show node attributes are enabled through force-layout
+*/
+
+var labelLayoutLinks = [];
+//var labelLayoutAnchors = []; //In the case where anchor is used.
+var labelLayoutNodes = [];
+
+/*
+The following part handles the force-directed label placements
+This is based on http://bl.ocks.org/MoritzStefaner/1377729 .
+*/
+var labelLayoutForce = null;
+if(labelsAreEnabledThroughForceLayout) {
+  /*
+  Specific variables
+  */
+  var labelLinkDistanceInInteraction = 20/5; //20 is default.
+
+  labelLayoutForce = d3.layout.force()
+    .nodes(labelLayoutNodes)
+    .links(labelLayoutLinks)
+    .charge(-120)
+    .linkStrength(5)
+	  .linkDistance(labelLinkDistanceInInteraction)
+	  .size([width, height])
+	  .gravity(0)
+	  ;
+  //labelLayoutForce = d3.layout.force().nodes(labelLayoutAnchors).links(labelLayoutLinks).gravity(0).linkDistance(0).linkStrength(8).charge(-100).size([width, height]);
+  /*
+    .size([width, height])
+    .nodes(labelLayoutAnchors)
+    .links(labelLayoutLinks)
+    .gravity(0)
+    .linkDistance(labelLinkDistanceInInteraction)
+    .linkStrength(1)
+    .charge(-30) //default value
+    .chargeDistance(50) //Could be worth changing
+    ;
+    */
+  labelLayoutForce.start();
+}
 
 var nodeSelected = null; //Reference to the node that has been selected
 
@@ -8,14 +66,14 @@ var svgVisualization = d3
 	.select("body")
 	.append("svg")
 	.attr("width", width)
-	.attr("height", height*2)
+	.attr("height", heightVisualization)
 	;
 
 var visualizationForce = d3
 	.layout.force()
 	.charge(-120)
 	.linkDistance(30)
-	.size([width, height])
+	.size([width, heightVisualization])
 	.gravity(0.5);
 	;
 
@@ -58,8 +116,6 @@ function updateVisualization( returnedObject ) {
 	visualizationLinks = [];
 	visualizationMap = new Object();
 
-	//orderNeo4jGraphInOneGraph( returnedObject );
-	//orderNeo4jGraphInMultipleGraphs( returnedObject );
   orderJSONinOneGraph( returnedObject );
 
 	visualizationForce
@@ -84,79 +140,14 @@ function updateVisualization( returnedObject ) {
 		.attr("r", 5)
 		.style("fill", "yellow")
 		.call(visualizationForce.drag);
-
 }
 
 /*
 Gets the JSON structured in the same manner as http://bl.ocks.org/mbostock/4062045 .
 */
 function orderJSONinOneGraph( returnedObject ) {
-  console.log("Ordering JSON in one graph");
   visualizationNodes = returnedObject.nodes;
   visualizationLinks = returnedObject.links;
-}
-
-/*
-Order the data returned from Neo4j (SELECT * RETURN *.name) as multiple tables shown as graphs.
-*/
-function orderNeo4jGraphInMultipleGraphs( returnedObject ) {
-	/*
-	Note, this function needs to be changed for large graphs since it will take unnecessarily long time.
-	*/
-	console.log("Ordering in multiple graphs");
-	var numberOfInternalIterations = returnedObject.columns.length;
-	console.log("Number of nodes in each graph is "+numberOfInternalIterations/2);
-	for(var i = returnedObject.data.length-1; i>=0; i--) {
-		var nodesInSubgraph = [];
-		for(var j = numberOfInternalIterations-1; j>=0; j--) {
-			var handledNode = returnedObject.data[i][j];
-			if(nodesInSubgraph.indexOf(returnedObject.data[i][j])<0) { //If does not exist in the subgraph already
-				nodesInSubgraph.push(returnedObject.data[i][j]);
-			}
-		}
-
-		var offsetInVisualizationNodes = visualizationNodes.length;
-		for(var k = nodesInSubgraph.length-1; k>=0; k--) {
-			visualizationNodes.push({name: nodesInSubgraph[k]});
-		}
-
-		for(var j = numberOfInternalIterations-2; j>=0; j-=2) {
-			var firstNode = returnedObject.data[i][j];
-			var secondNode = returnedObject.data[i][j+1];
-			visualizationLinks.push({source: (nodesInSubgraph.indexOf(firstNode)+offsetInVisualizationNodes), target: (nodesInSubgraph.indexOf(secondNode)+offsetInVisualizationNodes)});
-		}
-	}
-}
-
-/*
-Order the data returned from Neo4j (SELECT * RETURN *.name) as one graph.
-Note, at this stage this function has not been tested.
-*/
-function orderNeo4jGraphInOneGraph( meh ) {
-	var columnLength = meh.columns.length;
-	var numberOfInternalIterations = columnLength/2;
-	for(var i = meh.data.length-1; i>=0; i--) {
-		for(var j = numberOfInternalIterations-2; j >= 0; j -= 2) {
-			var firstNode = meh.data[i][j];
-			var secondNode = meh.data[i][j+1];
-			//console.log(firstNode);
-			//console.log(visualizationMap[firstNode]);
-			if(typeof visualizationMap[firstNode] == 'undefined') {
-				visualizationMap[firstNode] = visualizationNodes.length;
-				visualizationNodes.push(firstNode);
-			}
-			if(typeof visualizationMap[secondNode] == 'undefined') {
-				visualizationMap[secondNode] = visualizationNodes.length;
-				visualizationNodes.push(secondNode);
-			}
-
-			var firstNodeIndex = visualizationMap[firstNode];
-			var secondNodeIndex = visualizationMap[secondNode];
-
-			var newLink = {source:firstNodeIndex, target:secondNodeIndex};
-			visualizationLinks.push(newLink);
-		}
-	}
 }
 
 var force = d3
@@ -188,7 +179,7 @@ var svg = d3
 	.append("svg")
 	.attr("width", width)
 	.attr("height", height)
-	.on("dblclick", click)
+	.on("dblclick", onClickAddNode)
 	.on("click", function() {
 		onClickAddLinkState[0]=null;
 		d3
@@ -199,7 +190,7 @@ var svg = d3
 	})
 	;
 
-var cypherOutput = d3
+var databaseOutput = d3
 	.select("body")
 	.select("div")
 	.append("textarea")
@@ -227,14 +218,46 @@ var nodes = force.nodes(),
 	links = force.links(),
 	node = svg.selectAll(".node"),
 	link = svg.selectAll(".link")
+	anchorLink = svg.selectAll(".anchorLink"),
+  anchorNode = svg.selectAll("g.anchorNode")
 	;
 
-function click() {
+
+
+function onClickAddNode() {
 	//The if statement is to prevent non-char values.
 	if(nodes.length<=25) {
 		var point = d3.mouse(this),
 			node = {x: point[0], y: point[1]},
 			n = nodes.push(node);
+
+
+    if(labelsAreEnabledThroughForceLayout) {
+      console.log("Attempting to create labels...");
+      /*
+      fixed just means that the force layout should ignore it
+      node keeps a reference to the node this should be a anchor for.
+      */
+      var anchor = {x:point[0], y:point[1], fixed:true, labels:[], node:node, text:""};
+      /*
+      Here should add parts to take care of the amounts of labels
+      */
+      var label = {x:point[0], y:point[1], text:"test", node:node}; //Just a random label for test purposes
+      anchor.labels.push(label);
+      var labelLayoutPosition = labelLayoutNodes.length;
+
+      /*
+      for(var iterator = labelLayoutPosition; iterator < anchor.labels.length+labelLayoutPosition; iterator++) {
+        var link = {source:labelLayoutPosition, target:iterator};
+        labelLayoutLinks.push(link);
+      }
+      */
+
+      labelLayoutNodes.push(anchor);
+      labelLayoutNodes.push(label);
+      labelLayoutLinks.push({source:label, target:anchor});
+    }
+
 
 		restart();
 	}
@@ -244,6 +267,7 @@ function click() {
 What happens on each tick of the force-layout
 */
 function tick() {
+
 	/*link
 		.attr("x1", function(d) {return d.source.x; })
 		.attr("y1", function(d) {return d.source.y; })
@@ -259,11 +283,59 @@ function tick() {
 		.attr("cx", function(d) {return d.x;})
 		.attr("cy", function(d) {return d.y;})
 		;
+
+  if(labelsAreEnabledThroughForceLayout) {
+    labelLayoutForce.start();
+    anchorNode.each(function(d,i) {
+      if(_.has(d, "labels")) { //If it is a anchor node (it should just keep upp with the node it is being anchored to)
+        d.x = d.node.x;
+        d.y = d.node.y;
+      } else { //If it isn't a anchor node
+        /*console.log("Fel här");
+        console.log("This");
+        console.log(this);
+        console.log("Datum");
+        console.log(d);
+        */
+        var b = this.childNodes[0].getBBox();
+
+				var diffX = d.x - d.node.x;
+				var diffY = d.y - d.node.y;
+
+				var dist = Math.sqrt(diffX * diffX + diffY * diffY);
+
+				var shiftX = b.width * (diffX - dist) / (dist * 2);
+				shiftX = Math.max(-b.width, Math.min(0, shiftX));
+				var shiftY = 5;
+				this.childNodes[0].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+      }
+    });
+    anchorLink
+	  	.attr("x1", function(d) {return d.source.x; })
+		  .attr("y1", function(d) {return d.source.y; })
+	  	.attr("x2", function(d) {return d.target.x; })
+	  	.attr("y2", function(d) {return d.target.y; })
+		  ;
+    anchorNode.call(updateNode);
+  }
 }
 
+var updateNode = function() {
+	this.attr("transform", function(d) {
+		return "translate(" + d.x + "," + d.y + ")";
+	});
+}
 
+/*
+Should be run each time something new is added to interaction
+*/
 function restart() {
 	link = link.data(links);
+
+  link
+    .exit()
+    .remove()
+    ;
 
 	link
 		.enter()
@@ -273,6 +345,11 @@ function restart() {
 		;
 
 	node = node.data(nodes);
+
+  node
+    .exit()
+    .remove()
+    ;
 
 	node
 		.enter()
@@ -286,8 +363,88 @@ function restart() {
 		.call(dragHandler)
 		;
 
+  if(labelsAreEnabledThroughForceLayout) {
+    anchorLink = anchorLink.data(labelLayoutLinks);
 
-	//printCypherOutput();
+    anchorNode = anchorNode.data(labelLayoutNodes)
+      ;
+
+    anchorNode
+      .enter()
+      .append("svg:g")
+      .append("svg:text")
+    .text(function(d) {
+      return d.text;
+    })
+      .attr("editable", "simple")
+      ;
+
+
+    /*
+    anchorNode
+      .append("svg:circle")
+      .attr("r", 0)
+      .attr("fill", "#FFF")
+      ;
+
+    anchorNode
+      .enter()
+      .append("svg:text")
+      .text("Hej!")
+    ;
+    */
+
+    console.log("Anchornode.enter()");
+    console.log(anchorNode.enter());
+
+    /*
+    var newNodes = anchorNode
+      .enter()
+      .append("svg:g")
+    ;
+
+    newNodes
+      .append("svg:text")
+      .text("Hej!");
+
+    newNodes
+      .append("svg:circle")
+      .attr("r", 0)
+      .attr("fill", "#FFF");
+    */
+
+    /*
+    newNodes.append("svg:g")
+      .attr("class", "anchorNode")
+    .append("svg:circle")
+    */
+    //Will this just add one?
+
+    /*
+    anchorNode
+      .enter()
+      .append("svg:g")
+      .attr("class", "anchorNode")
+      ;
+
+    anchorNode
+    .append("svg:circle")
+    .attr("r", 0)
+    .attr("fill", "#FFF");
+
+    anchorNode.each(function (d) {
+      if(!_.has(d, "labels")) {
+      d3
+        .select(this)
+        .append("svg:text")
+        .text("Hej");
+      }
+    });
+    */
+
+    //labelLayoutForce.start();
+  }
+
   printJSONOutput();
 
 	force.start();
@@ -307,7 +464,7 @@ function printJSONOutput () {
        textToTextField += '{';
        for(var key = 0; key < keys.length; key++){
          if(!_.contains(d3NodeKeyValues, keys[key])) {
-           textToTextField += keys[key]+':'+nodes[iterator][keys[key]]+',';
+           textToTextField += +'"'+keys[key]+'":'+nodes[iterator][keys[key]]+',';
          }
        }
        if(textToTextField.charAt(textToTextField.length -1)==',') {
@@ -324,7 +481,7 @@ function printJSONOutput () {
     textToTextField += '{';
     for(var key = 0; key < keys.length; key++) {
       if(!_.contains(d3NodeKeyValues, keys[key])) {
-        textToTextField += keys[key]+':'+links[iterator][keys[key]]+',';
+        textToTextField += '"'+keys[key]+'":'+links[iterator][keys[key]]+',';
       }
     }
     textToTextField+= '"source":'+links[iterator]["source"].index+','
@@ -334,39 +491,11 @@ function printJSONOutput () {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
   }
   textToTextField += ']}';
-  console.log(textToTextField);
-  cypherOutput
+  if(developing) {
+    console.log(textToTextField);
+  }
+  databaseOutput
     .text(textToTextField);
-}
-
-function printCypherOutput () {
-	var textToTextField="";
-	textToTextField += '{"query":"MATCH ';
-	if(links.length>0) {
-		if(links.length>1) {
-			for(var i = links.length-1; i>0; i--) {
-				textToTextField += "("+String.fromCharCode(links[i].source.index+65)+")-[]->("+String.fromCharCode(links[i].target.index+65)+"), ";
-			}
-		}
-		textToTextField += "("+String.fromCharCode(links[0].source.index+65)+")-[]->("+String.fromCharCode(links[0].target.index+65)+")";
-		textToTextField += " RETURN ";
-		if(links.length>1) {
-			for(var i = links.length-1; i>0; i--) {
-				textToTextField += String.fromCharCode(links[i].source.index+65)+".name, "+String.fromCharCode(links[i].target.index+65)+".name, ";
-			}
-		}
-		textToTextField += String.fromCharCode(links[0].source.index+65)+".name, "+String.fromCharCode(links[0].target.index+65)+".name";
-
-		textToTextField += '","params":{}}';
-	}
-
-	cypherOutput
-		.text(textToTextField);
-}
-
-function temporaryConsoleOutputHelpFunction (link) {
-	console.log(link);
-	console.log("("+link.source.index+")-->("+link.target.index+")");
 }
 
 //See http://bl.ocks.org/mbostock/1153292
@@ -407,7 +536,7 @@ function buttonEvent (d) {
 		var xhr_object = null;
 
 		var xhr_object = new XMLHttpRequest();
-		xhr_object.open("POST", "http://localhost:8888/db/data/cypher");
+		xhr_object.open("POST", "http://localhost:8888/db/jena");
 		xhr_object.setRequestHeader('Accept-Language', 'sv-se');
 		xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
 		xhr_object.onreadystatechange = function() {
@@ -415,12 +544,10 @@ function buttonEvent (d) {
 				updateVisualization(JSON.parse(xhr_object.responseText));
 			}
 		}
-		//var cypherRequest = '{"query":"MATCH (n)-[]->(m) RETURN n.name, m.name LIMIT 5","params":{}}';
-		var cypherRequest2 = cypherOutput.text();
+		var requestToDatabase = databaseOutput.text();
 
-		//console.log(cypherRequest);
-		console.log(cypherRequest2);
-		xhr_object.send(cypherRequest2);
+		console.log(requestToDatabase);
+		xhr_object.send(requestToDatabase);
 	}
 }
 
