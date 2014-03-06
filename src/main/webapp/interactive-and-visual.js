@@ -154,7 +154,7 @@ var force = d3
 	.force()
 	.size([width, height])
 	.nodes([])
-	.linkDistance(30)
+	.linkDistance(90)
 	.charge(-300)
 	.gravity(0.1)
 	.on("tick", tick)
@@ -232,7 +232,7 @@ function onClickAddNode() {
 	//The if statement is to prevent non-char values.
 	if(nodes.length<=25) {
 		var point = d3.mouse(this),
-        node = {x: point[0], y: point[1], name:"null"},
+        node = {x: point[0], y: point[1], name:""},
 			n = nodes.push(node);
 
 
@@ -361,7 +361,7 @@ function restart() {
 		.enter()
 		.insert("circle", ".cursor") //Hm ... ?
 		.attr("class", "node")
-		.attr("r", 5)
+		.attr("r", 10)
 		.on("click", onClickAddLink)
 		.on("dblclick", function() {d3.event.stopPropagation();})
 		.on("mouseover", onMouseOverNode)
@@ -394,24 +394,21 @@ function deselectAll() {
   /*
   Attempting to save attribute values
   */
+  if(developing) {
+    console.log("deselectAll");
+    console.log("\tselectedNode="+selectedNode);
+    console.log("\tlinkThatIsSelected="+linkThatIsSelected);
+    console.log("\t"+textFieldShowingAttributes[0][0].value);
+  }
+
   if(selectedNode!=null) {
-    var thisNode = d3
-      .select(selectedNode)
-      ;
-    /*thisNode.each(function (datum) {
-      datum.name = text();
-                  });
-    */
     selectedNode.__data__.name = textFieldShowingAttributes[0][0].value;
-  } else if(linkThatIsSelected!=null) {
-    var thisLink = d3
-      .select(linkThatIsSelected)
-      ;
-    linkThatIsSelected.__data__.name = textFieldShowingAttributes[0][0].value;
+  }
+  if(linkThatIsSelected!=null) {
+    linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
   }
 
   textFieldShowingAttributes[0][0].value = "";
-  console.log("Selection unmarked");
   linkThatIsSelected=null;
   onClickAddLinkState[0]=null;
   if(selectedNode!=null) {
@@ -423,13 +420,15 @@ function deselectAll() {
 	selectedNode=null;
   printJSONOutput(); //Update
 };
+
 function onClickInteractiveLink (datum) {
   console.log("A link was clicked");
   if(linksAreSelectabel) {
-    deselectAll(); //Should remove all other selections, not implemented yet
+    deselectAll();
     linkThatIsSelected = this;
-    textFieldShowingAttributes
-      .value = datum.type;
+    textFieldShowingAttributes[0][0]
+      .value = this.__data__.type;
+    d3.event.stopPropagation();
   }
 }
 
@@ -437,7 +436,6 @@ function onClickInteractiveLink (datum) {
 Can be done shorter and easier but meh, serves it purpose, prints out a JSON presentation of the links and nodes ignoring d3js unique values.
 */
 function printJSONOutput () {
-  console.log("Attempting to create JSON output");
   var textToTextField="";
   textToTextField += '{"nodes":[';
 
@@ -446,7 +444,7 @@ function printJSONOutput () {
        textToTextField += '{';
        for(var key = 0; key < keys.length; key++){
          if(!_.contains(d3NodeKeyValues, keys[key])) {
-           textToTextField += '"'+keys[key]+'":'+nodes[iterator][keys[key]]+',';
+           textToTextField += '"'+keys[key]+'":"'+nodes[iterator][keys[key]]+'",';
          }
        }
        if(textToTextField.charAt(textToTextField.length -1)==',') {
@@ -463,7 +461,7 @@ function printJSONOutput () {
     textToTextField += '{';
     for(var key = 0; key < keys.length; key++) {
       if(!_.contains(d3NodeKeyValues, keys[key])) {
-        textToTextField += '"'+keys[key]+'":'+links[iterator][keys[key]]+',';
+        textToTextField += '"'+keys[key]+'":"'+links[iterator][keys[key]]+'",';
       }
     }
     textToTextField+= '"source":'+links[iterator]["source"].index+','
@@ -544,7 +542,7 @@ function onClickAddLink (datum) {
 			;
 	} else { //If a starting node has already been selected
 		if (onClickAddLinkState[0]!=datum) {
-      links.push({source: onClickAddLinkState[0], target: datum, type:"null"});
+      links.push({source: onClickAddLinkState[0], target: datum, type:""});
 			restart();
 			d3
 				.select(selectedNode)
