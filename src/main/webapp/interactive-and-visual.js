@@ -7,9 +7,21 @@ var height = 250;
 var heightVisualization = 250;
 
 var anchorAttributes = ["x", "y","fixed","labels","node"];
+var d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
 
-developing = false;
+var developing = false;
 var labelsAreEnabledThroughForceLayout = false;
+
+var nodesAreSelectabel = true; //This currently does not work.
+var nodeSelected = null; //Reference to the node that has been selected
+var onClickAddLinkState = [null, null]; //This should be removed at some point
+var linksAreSelectabel = true; //Currently working on this.
+var linkThatIsSelected = null;
+
+var defaultLinkColor = "black";
+
+var onSelectShowTextFieldAttribute = true; //Will show a small html textfield where name of attributes can be changed.
+
 
 if(developing) {
   height=200;
@@ -45,22 +57,9 @@ if(labelsAreEnabledThroughForceLayout) {
 	  .size([width, height])
 	  .gravity(0)
 	  ;
-  //labelLayoutForce = d3.layout.force().nodes(labelLayoutAnchors).links(labelLayoutLinks).gravity(0).linkDistance(0).linkStrength(8).charge(-100).size([width, height]);
-  /*
-    .size([width, height])
-    .nodes(labelLayoutAnchors)
-    .links(labelLayoutLinks)
-    .gravity(0)
-    .linkDistance(labelLinkDistanceInInteraction)
-    .linkStrength(1)
-    .charge(-30) //default value
-    .chargeDistance(50) //Could be worth changing
-    ;
-    */
   labelLayoutForce.start();
 }
 
-var nodeSelected = null; //Reference to the node that has been selected
 
 var svgVisualization = d3
 	.select("body")
@@ -170,8 +169,6 @@ var dragHandler = d3
 	.on("dragend", onDragEnd)
 	;
 
-var onClickAddLinkState = [null, null];
-
 var svg = d3
 	.select("body")
 	.append("div")
@@ -180,22 +177,29 @@ var svg = d3
 	.attr("width", width)
 	.attr("height", height)
 	.on("dblclick", onClickAddNode)
-	.on("click", function() {
-		onClickAddLinkState[0]=null;
-		d3
-			.select(selectedNode)
-			.style("fill", "black")
-			;
-		selectedNode=null;
-	})
+	.on("click", deselectAll)
 	;
+
+d3.select("body").select("div").append("div");
+var textFieldShowingAttributes = null;
+if(onSelectShowTextFieldAttribute) {
+  textFieldShowingAttributes = d3
+    .select("body")
+    .select("div")
+    .select("div")
+    .append("textarea")
+    .attr("rows", 6)
+    .attr("columns", 20)
+    ;
+}
 
 var databaseOutput = d3
 	.select("body")
 	.select("div")
+  .select("div")
 	.append("textarea")
-	.attr("rows", 16)
-	.attr("columns", 40)
+	.attr("rows", 6)
+	.attr("columns",20)
 	;
 
 
@@ -228,7 +232,7 @@ function onClickAddNode() {
 	//The if statement is to prevent non-char values.
 	if(nodes.length<=25) {
 		var point = d3.mouse(this),
-			node = {x: point[0], y: point[1]},
+        node = {x: point[0], y: point[1], name:"null"},
 			n = nodes.push(node);
 
 
@@ -342,6 +346,8 @@ function restart() {
 		.insert("path", ".node")
 		.attr("class", "link")
 		.attr("marker-end", "url(#end)")
+    .on("click", onClickInteractiveLink)
+    .on("dblclick", function() {d3.event.stopPropagation}) //Double clicking on a link should not create a new node
 		;
 
 	node = node.data(nodes);
@@ -353,7 +359,7 @@ function restart() {
 
 	node
 		.enter()
-		.insert("circle", ".cursor")
+		.insert("circle", ".cursor") //Hm ... ?
 		.attr("class", "node")
 		.attr("r", 5)
 		.on("click", onClickAddLink)
@@ -373,76 +379,10 @@ function restart() {
       .enter()
       .append("svg:g")
       .append("svg:text")
-    .text(function(d) {
+      .text(function(d) {
       return d.text;
-    })
-      .attr("editable", "simple")
+      })
       ;
-
-
-    /*
-    anchorNode
-      .append("svg:circle")
-      .attr("r", 0)
-      .attr("fill", "#FFF")
-      ;
-
-    anchorNode
-      .enter()
-      .append("svg:text")
-      .text("Hej!")
-    ;
-    */
-
-    console.log("Anchornode.enter()");
-    console.log(anchorNode.enter());
-
-    /*
-    var newNodes = anchorNode
-      .enter()
-      .append("svg:g")
-    ;
-
-    newNodes
-      .append("svg:text")
-      .text("Hej!");
-
-    newNodes
-      .append("svg:circle")
-      .attr("r", 0)
-      .attr("fill", "#FFF");
-    */
-
-    /*
-    newNodes.append("svg:g")
-      .attr("class", "anchorNode")
-    .append("svg:circle")
-    */
-    //Will this just add one?
-
-    /*
-    anchorNode
-      .enter()
-      .append("svg:g")
-      .attr("class", "anchorNode")
-      ;
-
-    anchorNode
-    .append("svg:circle")
-    .attr("r", 0)
-    .attr("fill", "#FFF");
-
-    anchorNode.each(function (d) {
-      if(!_.has(d, "labels")) {
-      d3
-        .select(this)
-        .append("svg:text")
-        .text("Hej");
-      }
-    });
-    */
-
-    //labelLayoutForce.start();
   }
 
   printJSONOutput();
@@ -450,10 +390,52 @@ function restart() {
 	force.start();
 }
 
+function deselectAll() {
+  /*
+  Attempting to save attribute values
+  */
+  if(selectedNode!=null) {
+    var thisNode = d3
+      .select(selectedNode)
+      ;
+    /*thisNode.each(function (datum) {
+      datum.name = text();
+                  });
+    */
+    selectedNode.__data__.name = textFieldShowingAttributes[0][0].value;
+  } else if(linkThatIsSelected!=null) {
+    var thisLink = d3
+      .select(linkThatIsSelected)
+      ;
+    linkThatIsSelected.__data__.name = textFieldShowingAttributes[0][0].value;
+  }
+
+  textFieldShowingAttributes[0][0].value = "";
+  console.log("Selection unmarked");
+  linkThatIsSelected=null;
+  onClickAddLinkState[0]=null;
+  if(selectedNode!=null) {
+    d3
+			.select(selectedNode)
+			.style("fill", "black")
+			;
+  }
+	selectedNode=null;
+  printJSONOutput(); //Update
+};
+function onClickInteractiveLink (datum) {
+  console.log("A link was clicked");
+  if(linksAreSelectabel) {
+    deselectAll(); //Should remove all other selections, not implemented yet
+    linkThatIsSelected = this;
+    textFieldShowingAttributes
+      .value = datum.type;
+  }
+}
+
 /*
 Can be done shorter and easier but meh, serves it purpose, prints out a JSON presentation of the links and nodes ignoring d3js unique values.
 */
-var d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
 function printJSONOutput () {
   console.log("Attempting to create JSON output");
   var textToTextField="";
@@ -464,7 +446,7 @@ function printJSONOutput () {
        textToTextField += '{';
        for(var key = 0; key < keys.length; key++){
          if(!_.contains(d3NodeKeyValues, keys[key])) {
-           textToTextField += +'"'+keys[key]+'":'+nodes[iterator][keys[key]]+',';
+           textToTextField += '"'+keys[key]+'":'+nodes[iterator][keys[key]]+',';
          }
        }
        if(textToTextField.charAt(textToTextField.length -1)==',') {
@@ -494,8 +476,8 @@ function printJSONOutput () {
   if(developing) {
     console.log(textToTextField);
   }
-  databaseOutput
-    .text(textToTextField);
+
+  databaseOutput[0][0].value = textToTextField;
 }
 
 //See http://bl.ocks.org/mbostock/1153292
@@ -544,7 +526,7 @@ function buttonEvent (d) {
 				updateVisualization(JSON.parse(xhr_object.responseText));
 			}
 		}
-		var requestToDatabase = databaseOutput.text();
+		var requestToDatabase = databaseOutput[0][0].value;
 
 		console.log(requestToDatabase);
 		xhr_object.send(requestToDatabase);
@@ -562,7 +544,7 @@ function onClickAddLink (datum) {
 			;
 	} else { //If a starting node has already been selected
 		if (onClickAddLinkState[0]!=datum) {
-			links.push({source: onClickAddLinkState[0], target: datum});
+      links.push({source: onClickAddLinkState[0], target: datum, type:"null"});
 			restart();
 			d3
 				.select(selectedNode)
@@ -570,8 +552,12 @@ function onClickAddLink (datum) {
 				;
 			selectedNode = null;
 			onClickAddLinkState[0]=null;
+      deselectAll();
 		}
 	}
+  textFieldShowingAttributes[0][0]
+    .value = datum.name
+    ;
 	d3.event.stopPropagation();
 }
 
