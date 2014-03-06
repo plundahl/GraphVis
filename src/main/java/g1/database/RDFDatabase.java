@@ -32,7 +32,7 @@ public class RDFDatabase {
     model.read( in, "" );
 
     System.out.println("RDFCreated and Waiting");
-    System.out.println(">> THIS IS A TEST ENVIRONMENT, THE RESULTING GRAPH IS A RANDOM GRAPH <<");
+    System.out.println(">> THIS IS A TEST ENVIRONMENT, THE RESULTING GRAPH IS A STATIC GRAPH lesmis.rdf <<");
   }
 
   public String queryDB(String queryString)
@@ -72,5 +72,11 @@ public class RDFDatabase {
 
       return resGraph.toJson();
     } finally { qexec.close() ; }
+  }
+
+  //Returns all the predicates in the RDF-data as a JSON array.
+  public String getPredicates()
+  {
+    return "{\"predicates\":[\"tmp\"]}";
   }
 }
