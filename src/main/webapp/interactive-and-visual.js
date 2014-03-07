@@ -486,7 +486,8 @@ function linkArc(d) {
 	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 0,1 "+d.target.x+","+d.target.y;
 }
 
-var buttons = ["Node", "Link", "Description", "Send"];
+//var buttons = ["Node", "Link", "Description", "Send"];
+var buttons = ["Send"];
 
 d3
 	.selectAll("button")
@@ -500,7 +501,8 @@ d3
 function buttonEvent (d) {
 	buttonState = d;
 	console.log(buttonState);
-	if(d===buttons[1]) { //If "link" button is pressed
+	/*
+  if(d===buttons[1]) { //If "link" button is pressed
 	       var node = svg.selectAll(".node");
 	       node.forEach(console.log);
 		console.log("Link button has been clicked");
@@ -512,7 +514,7 @@ function buttonEvent (d) {
 			;
 	} else if (d === buttons[2]) {
 
-	} else if (d == buttons[3]) {
+	} else */if (d == buttons[0]) {
 		var xhr_object = null;
 
 		var xhr_object = new XMLHttpRequest();
