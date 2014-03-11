@@ -13,4 +13,14 @@
     <servlet-name>DataBaseRequest</servlet-name>
     <url-pattern>/db/*</url-pattern>
   </servlet-mapping>
+
+  <servlet>
+    <servlet-name>DataBaseRequestPredicates</servlet-name>
+    <servlet-class>g1.servlet.DataBaseRequestPredicates</servlet-class>
+    <load-on-startup>1</load-on-startup> 
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DataBaseRequestPredicates</servlet-name>
+    <url-pattern>/db-predicates/*</url-pattern>
+  </servlet-mapping>
 </web-app>
