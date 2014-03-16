@@ -13,7 +13,7 @@ import g1.database.RDFDatabase;
  
 public class DataBaseRequest extends HttpServlet
 {
-    RDFDatabase db = new RDFDatabase("lesmis.rdf");
+    RDFDatabase db = new RDFDatabase("ont_student_inf.rdf");
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
