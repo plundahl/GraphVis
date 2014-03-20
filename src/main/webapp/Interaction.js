@@ -4,7 +4,6 @@ Static variables
 */
 var width = 1000;
 var height = 250;
-var heightVisualization = 250;
 
 var anchorAttributes = ["x", "y","fixed","labels","node"];
 var d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
@@ -18,6 +17,12 @@ var onClickAddLinkState = [null, null]; //This should be removed at some point
 var linksAreSelectabel = true; //Currently working on this.
 var linkThatIsSelected = null;
 
+
+var nodeThatMouseIsOver = null;
+var nodeThatIsBeingDragged = null;
+var pathFromNodeToMouse = null;
+var selectedNode = null;
+
 var defaultLinkColor = "black";
 
 var onSelectShowTextFieldAttribute = true; //Will show a small html textfield where name of attributes can be changed.
@@ -26,7 +31,6 @@ var onSelectShowTextFieldAttribute = true; //Will show a small html textfield wh
 if(developing) {
   height=200;
   width=600;
-  heightVisualization=100;
 }
 
 /*
@@ -58,95 +62,6 @@ if(labelsAreEnabledThroughForceLayout) {
 	  .gravity(0)
 	  ;
   labelLayoutForce.start();
-}
-
-
-var svgVisualization = d3
-	.select("body")
-	.append("svg")
-	.attr("width", width)
-	.attr("height", heightVisualization)
-	;
-
-var visualizationForce = d3
-	.layout.force()
-	.charge(-120)
-	.linkDistance(30)
-	.size([width, heightVisualization])
-	.gravity(0.5);
-	;
-
-visualizationForce.on("tick", function() {
-	visualizationLink.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-
-    visualizationNode.attr("cx", function(d) { return d.x; })
-        .attr("cy", function(d) { return d.y; });
-});
-
-var visualizationNodes = [];
-var visualizationLinks = [];
-var visualizationMap = new Object();
-
-var visualizationLink = svgVisualization.selectAll(".visualizationLink")
-	.data(visualizationLinks)
-	.enter()
-	.append("line")
-	.attr("class", "link")
-	.style("stroke-width", 2)
-	;
-
-var visualizationNode = svgVisualization.selectAll(".visualizationNode")
-	.data(visualizationNodes)
-	.enter()
-	.append("circle")
-	.attr("class", "node")
-	.attr("r", 5)
-	.style("fill", "yellow")
-	.call(visualizationForce.drag);
-
-/*
-Updates the visualization once new information has arrived.
-*/
-function updateVisualization( returnedObject ) {
-	visualizationNodes = [];
-	visualizationLinks = [];
-	visualizationMap = new Object();
-
-  orderJSONinOneGraph( returnedObject );
-
-	visualizationForce
-		.nodes(visualizationNodes)
-		.links(visualizationLinks)
-		.start()
-		;
-
-	visualizationLink = svgVisualization.selectAll(".visualizationLink")
-		.data(visualizationLinks)
-		.enter()
-		.append("line")
-		.attr("class", "link")
-		.style("stroke-width", 2)
-		;
-
-	visualizationNode = svgVisualization.selectAll(".visualizationNode")
-		.data(visualizationNodes)
-		.enter()
-		.append("circle")
-		.attr("class", "node")
-		.attr("r", 5)
-		.style("fill", "yellow")
-		.call(visualizationForce.drag);
-}
-
-/*
-Gets the JSON structured in the same manner as http://bl.ocks.org/mbostock/4062045 .
-*/
-function orderJSONinOneGraph( returnedObject ) {
-  visualizationNodes = returnedObject.nodes;
-  visualizationLinks = returnedObject.links;
 }
 
 var force = d3
@@ -185,8 +100,6 @@ var textFieldShowingAttributes = null;
 if(onSelectShowTextFieldAttribute) {
   textFieldShowingAttributes = d3
     .select("body")
-    .select("div")
-    .select("div")
     .append("textarea")
     .attr("rows", 6)
     .attr("columns", 20)
@@ -195,8 +108,6 @@ if(onSelectShowTextFieldAttribute) {
 
 var databaseOutput = d3
 	.select("body")
-	.select("div")
-  .select("div")
 	.append("textarea")
 	.attr("rows", 6)
 	.attr("columns",20)
@@ -432,105 +343,12 @@ function onClickInteractiveLink (datum) {
   }
 }
 
-/*
-Can be done shorter and easier but meh, serves it purpose, prints out a JSON presentation of the links and nodes ignoring d3js unique values.
-*/
-function printJSONOutput () {
-  var textToTextField="";
-  textToTextField += '{"nodes":[';
-
-     for(var iterator = 0; iterator < nodes.length; iterator++) {
-       var keys = _.keys(nodes[iterator]);
-       textToTextField += '{';
-       for(var key = 0; key < keys.length; key++){
-         if(!_.contains(d3NodeKeyValues, keys[key])) {
-           textToTextField += '"'+keys[key]+'":"'+nodes[iterator][keys[key]]+'",';
-         }
-       }
-       if(textToTextField.charAt(textToTextField.length -1)==',') {
-         textToTextField = textToTextField.slice(0, -1); //"Removes" last character
-       }
-       textToTextField += '},';
-     }
-  if(textToTextField.charAt(textToTextField.length - 1)==',') {
-    textToTextField = textToTextField.slice(0, -1); //"Removes" last character
-  }
-  textToTextField += '], "links":[';
-  for (var iterator = 0; iterator < links.length; iterator++) {
-    var keys = _.keys(links[iterator]);
-    textToTextField += '{';
-    for(var key = 0; key < keys.length; key++) {
-      if(!_.contains(d3NodeKeyValues, keys[key])) {
-        textToTextField += '"'+keys[key]+'":"'+links[iterator][keys[key]]+'",';
-      }
-    }
-    textToTextField+= '"source":'+links[iterator]["source"].index+','
-    +'"target":'+links[iterator]["target"].index+'},';
-  }
-  if(textToTextField.charAt(textToTextField.length - 1)==',') {
-    textToTextField = textToTextField.slice(0, -1); //"Removes" last character
-  }
-  textToTextField += ']}';
-  if(developing) {
-    console.log(textToTextField);
-  }
-
-  databaseOutput[0][0].value = textToTextField;
-}
-
 //See http://bl.ocks.org/mbostock/1153292
 function linkArc(d) {
 	var dx = d.target.x - d.source.x,
 		dy = d.target.y-d.source.y,
 		dr = Math.sqrt(dx * dx + dy*dy);
 	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 0,1 "+d.target.x+","+d.target.y;
-}
-
-//var buttons = ["Node", "Link", "Description", "Send"];
-var buttons = ["Send"];
-
-d3
-	.selectAll("button")
-	.data(buttons)
-	.enter()
-	.append("button")
-	.text(function (d) {return d;})
-	.on("click", buttonEvent)
-	;
-
-function buttonEvent (d) {
-	buttonState = d;
-	console.log(buttonState);
-	/*
-  if(d===buttons[1]) { //If "link" button is pressed
-	       var node = svg.selectAll(".node");
-	       node.forEach(console.log);
-		console.log("Link button has been clicked");
-			console.log(node.length);
-	} else if (d===buttons[0]) { //If "node" button is pressed
-		d3
-			.selectAll("node")
-			.on("click", null)
-			;
-	} else if (d === buttons[2]) {
-
-	} else */if (d == buttons[0]) {
-		var xhr_object = null;
-
-		var xhr_object = new XMLHttpRequest();
-		xhr_object.open("POST", "http://localhost:8888/db/jena");
-		xhr_object.setRequestHeader('Accept-Language', 'sv-se');
-		xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
-		xhr_object.onreadystatechange = function() {
-			if (xhr_object.readyState == 4 && xhr_object.status == 200) {
-				updateVisualization(JSON.parse(xhr_object.responseText));
-			}
-		}
-		var requestToDatabase = databaseOutput[0][0].value;
-
-		console.log(requestToDatabase);
-		xhr_object.send(requestToDatabase);
-	}
 }
 
 function onClickAddLink (datum) {
@@ -560,11 +378,6 @@ function onClickAddLink (datum) {
     ;
 	d3.event.stopPropagation();
 }
-
-var nodeThatMouseIsOver = null;
-var nodeThatIsBeingDragged = null;
-var pathFromNodeToMouse = null;
-var selectedNode = null;
 
 function onMouseOverNode (datum) {
 	d3.event.stopPropagation(); //2 nodes really shouldn't be on top of eachother but w/e

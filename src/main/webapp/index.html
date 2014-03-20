@@ -1,28 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-<style>
-.node {
-	fill: #000;
-}
-.link {
-	fill: none;
-	stroke: #999;
-    stroke-width: 3;
-}
-.background {
-	background-color: #FAFAFA;
-}
+    <style>
+    .node {
+	    fill: #000;
+    }
+    .link {
+	    fill: none;
+	    stroke: #999;
+        stroke-width: 3;
+    }
+    .background {
+    	background-color: #909090;
+    }
 
 </style>
+    <style type="text/css">
+        #mygraph {
+            width: 600px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+    </style>
 	<head>
 		<meta charset="utf-8">
 		<title>D3, Neo4j and Cypher</title>
-		<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
-        <script type="text/javascript" src="http://underscorejs.org/underscore-min.js"></script>
+		<script type="text/javascript" src="d3.min.js"></script>
+        <script type="text/javascript" src="underscore-min.js"></script>
+        <script type="text/javascript" src="../../vis/dist/vis.js"></script>
 	</head>
 	<body>
-		<script type="text/javascript" src="interactive-and-visual.js">
+        <div id="mygraph"></div>
 
-		</script>
+        <script type="text/javascript" src="Visualization.js"></script>
+        <script type="text/javascript" src="Networking.js"></script>
+        <script type="text/javascript" src="Interaction.js"></script>
+        <script type="text/javascript">
+                function sendButtonEvent () {
+                    //sendToDatabase(databaseOutput[0][0].value);
+                    sendToDatabase();
+                }
+
+        </script>
+        <button onClick="sendButtonEvent()">Send</button>
 	</body>
 </html>
