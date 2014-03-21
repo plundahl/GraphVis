@@ -9,8 +9,9 @@ import java.lang.Math;
 public class Graph {
   public List<Node> nodes = new ArrayList<Node>();
   public List<Link> links = new ArrayList<Link>();
-  private Map<String, Integer> nodeMap = new HashMap<String, Integer>();
-  private int nrOfNodes = 0;
+  transient private Map<String, Integer> nodeMap = new HashMap<String, Integer>(); 
+  transient private Map<String, Integer> linkMap = new HashMap<String, Integer>();
+  transient private int nrOfNodes = 0;
 
   Graph()
   {
@@ -18,31 +19,36 @@ public class Graph {
 
   void addTripplet(String first, String link, String last)
   {
-    if(!nodeMap.containsKey(first))
+    String linkKey = first+link+last;
+    if(!linkMap.containsKey(linkKey))
     {
-      addNode(first);
+      if(!nodeMap.containsKey(first))
+      {
+        addNode(first);
+      }
+      if(!nodeMap.containsKey(last))
+      {
+        addNode(last);
+      }
+      linkMap.put(linkKey,nrOfNodes);
+      addLink(nodeMap.get(first),nodeMap.get(last)); 
     }
-    if(!nodeMap.containsKey(last))
-    {
-      addNode(last);
-    }
-   addLink(nodeMap.get(first),nodeMap.get(last)); 
   }
 
   void addLink(int first, int last)
   {
-        Link l = new Link();
-        l.source = first;
-        l.target =last;
-        links.add(l);
+    Link l = new Link();
+    l.source = first;
+    l.target =last;
+    links.add(l);
   }
 
   void addNode(String tmp)
   {
-      Node n = new Node();
-      nodes.add(n);
-      nodeMap.put(tmp,nrOfNodes);
-      nrOfNodes++;
+    Node n = new Node();
+    nodes.add(n);
+    nodeMap.put(tmp,nrOfNodes);
+    nrOfNodes++;
   }
 
   //TODO

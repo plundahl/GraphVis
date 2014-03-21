@@ -4,4 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Node {
+  public String name;
+
+  Node()
+  {
+  }
 }
