@@ -38,7 +38,7 @@ function updateVisualization( returnedObject ) {
   options = {
     nodes: {shape:'circle'},
     edges: {length : 80},
-    clustering: {enabled: true},
+    clustering: {enabled: false},
     stabilize: false,
     physics:
       {barnesHut:
