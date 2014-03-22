@@ -118,6 +118,8 @@ function sendToDatabase() {
         var responseObject = JSON.parse(xhr_object.responseText);
         console.log(responseObject);
 				updateVisualization(responseObject);
+        updateTextAreaWithTextResponse("Test1");
+        updateTextAreaWithSPARQLQuery("Test2");
 			}
 		}
 
@@ -125,4 +127,14 @@ function sendToDatabase() {
 
 		//console.log(requestToDatabase);
 		xhr_object.send(requestToDatabase);
+}
+
+function updateTextAreaWithTextResponse( textResponse ) {
+  var textArea = document.getElementById("SPARQLResponseTextArea");
+  textArea.innerHTML = textResponse;
+}
+
+function updateTextAreaWithSPARQLQuery( SPARQLText ) {
+  var textArea = document.getElementById("SPARQLQueryTextArea");
+  textArea.innerHTML = SPARQLText;
 }
