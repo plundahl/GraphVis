@@ -313,7 +313,7 @@ function deselectAllInteraction() {
   }
 
   if(selectedNode!=null) {
-    selectedNode.__data__.name = textFieldShowingAttributes[0][0].value;
+    selectedNode.__data__.type = textFieldShowingAttributes[0][0].value;
   }
   if(linkThatIsSelected!=null) {
     linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
@@ -374,7 +374,7 @@ function onClickAddLink (datum) {
 		}
 	}
   textFieldShowingAttributes[0][0]
-    .value = datum.name
+    .value = datum.type
     ;
 	d3.event.stopPropagation();
 }
