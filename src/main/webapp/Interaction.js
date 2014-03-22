@@ -105,6 +105,7 @@ if(onSelectShowTextFieldAttribute) {
     .append("textarea")
     .attr("rows", 6)
     .attr("columns", 20)
+    .attr("title", "Write a new value for the node type here.")
     ;
 }
 
@@ -113,6 +114,7 @@ var databaseOutput = d3
 	.append("textarea")
 	.attr("rows", 6)
 	.attr("columns",20)
+  .attr("title", "This shows what will be sent to the server.")
 	;
 
 
