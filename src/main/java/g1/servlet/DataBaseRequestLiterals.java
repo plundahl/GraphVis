@@ -12,16 +12,15 @@ import javax.servlet.http.HttpServletResponse;
 import g1.database.RDFDatabase;
 import g1.database.RDFDatabaseSingleton;
  
-public class DataBaseRequestPredicates extends HttpServlet
+public class DataBaseRequestLiterals extends HttpServlet
 {
-    RDFDatabase db = RDFDatabaseSingleton.getInstance();
-
+	RDFDatabase db = RDFDatabaseSingleton.getInstance();
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
         response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);	
+        response.setStatus(HttpServletResponse.SC_OK);
 		//SEND query TO DB & GET resp
-		String resp = db.getPredicates();
+		String resp = db.getLiterals();
 		//Return resp as response 
 		PrintWriter pw = response.getWriter();
 		pw.println(resp);

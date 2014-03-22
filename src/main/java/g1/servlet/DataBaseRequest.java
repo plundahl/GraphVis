@@ -10,11 +10,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import g1.database.RDFDatabase;
+import g1.database.RDFDatabaseSingleton;
  
 public class DataBaseRequest extends HttpServlet
 {
-    RDFDatabase db = new RDFDatabase("ont_student_inf.rdf");
-
+    //RDFDatabase db = new RDFDatabase("ont_student_inf.rdf");
+	RDFDatabase db = RDFDatabaseSingleton.getInstance();
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
 	String req = request.getMethod();
