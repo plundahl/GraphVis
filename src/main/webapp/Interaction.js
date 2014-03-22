@@ -92,7 +92,7 @@ var svg = d3
 	.attr("width", width)
 	.attr("height", height)
 	.on("dblclick", onClickAddNode)
-	.on("click", deselectAll)
+	.on("click", deselectAllInteraction)
 	;
 
 d3.select("body").select("div").append("div");
@@ -129,7 +129,7 @@ svg
 	.attr("d", "M0, -5L10, 0L0,5")
 	;
 
-var nodes = force.nodes(),
+var nodesInteraction = force.nodes(),
 	links = force.links(),
 	node = svg.selectAll(".node"),
 	link = svg.selectAll(".link")
@@ -141,10 +141,10 @@ var nodes = force.nodes(),
 
 function onClickAddNode() {
 	//The if statement is to prevent non-char values.
-	if(nodes.length<=25) {
+	if(nodesInteraction.length<=25) {
 		var point = d3.mouse(this),
-        node = {x: point[0], y: point[1], name:""},
-			n = nodes.push(node);
+        node = {x: point[0], y: point[1], type:""},
+			n = nodesInteraction.push(node);
 
 
     if(labelsAreEnabledThroughForceLayout) {
@@ -261,7 +261,7 @@ function restart() {
     .on("dblclick", function() {d3.event.stopPropagation}) //Double clicking on a link should not create a new node
 		;
 
-	node = node.data(nodes);
+	node = node.data(nodesInteraction);
 
   node
     .exit()
@@ -301,7 +301,7 @@ function restart() {
 	force.start();
 }
 
-function deselectAll() {
+function deselectAllInteraction() {
   /*
   Attempting to save attribute values
   */
@@ -335,7 +335,7 @@ function deselectAll() {
 function onClickInteractiveLink (datum) {
   console.log("A link was clicked");
   if(linksAreSelectabel) {
-    deselectAll();
+    deselectAllInteraction();
     linkThatIsSelected = this;
     textFieldShowingAttributes[0][0]
       .value = this.__data__.type;
@@ -370,7 +370,7 @@ function onClickAddLink (datum) {
 				;
 			selectedNode = null;
 			onClickAddLinkState[0]=null;
-      deselectAll();
+      deselectAllInteraction();
 		}
 	}
   textFieldShowingAttributes[0][0]

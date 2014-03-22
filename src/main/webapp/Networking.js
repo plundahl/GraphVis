@@ -21,7 +21,7 @@ function orderJSONinOneGraph( returnedObject ) {
 Checks and returns the nodes in a format acceptable to vis.js
 This functions assumes that either all objects are for D3 or for vis.
 */
-function verifyJSONForVisjsNodes( returnedObject, nodes ) {
+function verifyJSONForVisjsNodes( returnedObject ) {
   var returnedNodes = returnedObject.nodes;
 
   if(returnedNodes[0]!=null&&(!_.has(returnedNodes[0], "id"))) {
@@ -64,12 +64,12 @@ function printJSONOutput () {
   var textToTextField="";
   textToTextField += '{"nodes":[';
 
-     for(var iterator = 0; iterator < nodes.length; iterator++) {
-       var keys = _.keys(nodes[iterator]);
+     for(var iterator = 0; iterator < nodesInteraction.length; iterator++) {
+       var keys = _.keys(nodesInteraction[iterator]);
        textToTextField += '{';
        for(var key = 0; key < keys.length; key++){
          if(!_.contains(d3NodeKeyValues, keys[key])) {
-           textToTextField += '"'+keys[key]+'":"'+nodes[iterator][keys[key]]+'",';
+           textToTextField += '"'+keys[key]+'":"'+nodesInteraction[iterator][keys[key]]+'",';
          }
        }
        if(textToTextField.charAt(textToTextField.length -1)==',') {
