@@ -138,3 +138,50 @@ function updateTextAreaWithSPARQLQuery( SPARQLText ) {
   var textArea = document.getElementById("SPARQLQueryTextArea");
   textArea.innerHTML = SPARQLText;
 }
+
+function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
+  var xhr_object = new XMLHttpRequest();
+	xhr_object.open("POST", "http://localhost:8888/"+prefix);
+	xhr_object.setRequestHeader('Accept-Language', 'sv-se');
+	xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
+	xhr_object.onreadystatechange = function() {
+	if (xhr_object.readyState == 4 && xhr_object.status == 200) {
+    var responseObject = JSON.parse(xhr_object.responseText);
+		callingFunction(responseObject);
+	  }
+	}
+  xhr_object.send();
+}
+
+function getPredicatesForInteraction( responseObject ) {
+  if(responseObject==null) {
+    requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction)
+  } else {
+    console.log(responseObject);
+    updatePredicatesForInteraction(responseObject.edgetypes);
+  }
+}
+
+function updatePredicatesForInteraction( types ) {
+  var selector = document.getElementById("selectionOfType");
+  if(types.length>0) {
+    selectorInnerHTML = "<select id='typeSelector'>";
+    for(var iterator=0; iterator<=types.length; iterator++) {
+      //console.log("Added "+types[iterator]);
+      selectorInnerHTML += "<option value='"+types[iterator]+"'>"+
+        types[iterator] + "</option>";
+    }
+    selectorInnerHTML += "</select>"
+    selector.innerHTML = selectorInnerHTML;
+  } else {
+    //TODO
+  }
+}
+
+function getLiteralsForInteraction() {
+
+}
+
+function updateLiteralsForInteraction() {
+
+}

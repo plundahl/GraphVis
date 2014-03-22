@@ -17,7 +17,6 @@ var onClickAddLinkState = [null, null]; //This should be removed at some point
 var linksAreSelectabel = true; //Currently working on this.
 var linkThatIsSelected = null;
 
-
 var nodeThatMouseIsOver = null;
 var nodeThatIsBeingDragged = null;
 var pathFromNodeToMouse = null;
@@ -26,7 +25,6 @@ var selectedNode = null;
 var defaultLinkColor = "black";
 
 var onSelectShowTextFieldAttribute = true; //Will show a small html textfield where name of attributes can be changed.
-
 
 if(developing) {
   height=200;
@@ -97,18 +95,6 @@ var svg = d3
 	.on("click", deselectAllInteraction)
 	;
 
-d3.select("body").select("div").append("div");
-var textFieldShowingAttributes = null;
-if(onSelectShowTextFieldAttribute) {
-  textFieldShowingAttributes = d3
-    .select("body")
-    .append("textarea")
-    .attr("rows", 6)
-    .attr("columns", 20)
-    .attr("title", "Write a new value for the node type here.")
-    ;
-}
-
 var databaseOutput = d3
 	.select("body")
 	.append("textarea")
@@ -147,7 +133,7 @@ function onClickAddNode() {
 	//The if statement is to prevent non-char values.
 	if(nodesInteraction.length<=25) {
 		var point = d3.mouse(this),
-        node = {x: point[0], y: point[1], type:""},
+        node = {x: point[0], y: point[1], type:"undefined"},
 			n = nodesInteraction.push(node);
 
 
@@ -313,17 +299,23 @@ function deselectAllInteraction() {
     console.log("deselectAll");
     console.log("\tselectedNode="+selectedNode);
     console.log("\tlinkThatIsSelected="+linkThatIsSelected);
-    console.log("\t"+textFieldShowingAttributes[0][0].value);
+    //console.log("\t"+textFieldShowingAttributes[0][0].value);
+    //TODO add typeSelector
   }
+
+  var typeSelector = document.getElementById("typeSelector");
 
   if(selectedNode!=null) {
-    selectedNode.__data__.type = textFieldShowingAttributes[0][0].value;
+    //selectedNode.__data__.type = textFieldShowingAttributes[0][0].value;
+    selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
   }
   if(linkThatIsSelected!=null) {
-    linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
+    //linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
+    linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
   }
 
-  textFieldShowingAttributes[0][0].value = "";
+  //TODO, make typeSelector text show nothing or null or whatever is deemed appropriate
+  //textFieldShowingAttributes[0][0].value = "";
   linkThatIsSelected=null;
   onClickAddLinkState[0]=null;
   if(selectedNode!=null) {
@@ -341,8 +333,11 @@ function onClickInteractiveLink (datum) {
   if(linksAreSelectabel) {
     deselectAllInteraction();
     linkThatIsSelected = this;
+    /*
     textFieldShowingAttributes[0][0]
       .value = this.__data__.type;
+    */
+    setSelectTypeToValue(this.__data__.type);
     d3.event.stopPropagation();
   }
 }
@@ -377,11 +372,14 @@ function onClickAddLink (datum) {
       deselectAllInteraction();
 		}
 	}
-  textFieldShowingAttributes[0][0]
+  /*textFieldShowingAttributes[0][0]
     .value = datum.type
     ;
+    */
+  setSelectTypeToValue(datum.type);
 	d3.event.stopPropagation();
 }
+
 
 function onMouseOverNode (datum) {
 	d3.event.stopPropagation(); //2 nodes really shouldn't be on top of eachother but w/e
@@ -420,4 +418,16 @@ function onDragEnd (datum) {
 	nodeThatIsBeingDragged = null;
 	if (nodeThatMouseIsOver==null) return;
 
+}
+
+
+function setSelectTypeToValue( value ) {
+  var typeSelector = document.getElementById("typeSelector");
+    for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
+      var currentText = typeSelector.childNodes[i].text;
+      if(currentText==value) {
+        typeSelector.selectedIndex = i;
+        break;
+      }
+    }
 }
