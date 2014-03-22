@@ -11,6 +11,8 @@
 
 var filteredNodes;
 var nodeGroup = [];
+var nodes;
+var edges;
 
 
 /*
@@ -18,16 +20,16 @@ Updates the visualization once new information has arrived.
 */
 function updateVisualization( returnedObject ) {
   var node = verifyJSONForVisjsNodes( returnedObject );
-  console.log(node);
+  //console.log(node);
   var edge = verifyJSONForVisjsEdges( returnedObject );
-  console.log(edge);
+  //console.log(edge);
 
   // create a graph
   var container = document.getElementById('mygraph');
 
-	nodes = new vis.DataSet();
+	var nodes = new vis.DataSet();
 	nodes.add(node);
-	edges = new vis.DataSet();
+	var edges = new vis.DataSet();
 	edges.add(edge);
 
 	filteredNodes = new vis.DataSet();

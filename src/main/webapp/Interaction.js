@@ -17,7 +17,6 @@ var onClickAddLinkState = [null, null]; //This should be removed at some point
 var linksAreSelectabel = true; //Currently working on this.
 var linkThatIsSelected = null;
 
-
 var nodeThatMouseIsOver = null;
 var nodeThatIsBeingDragged = null;
 var pathFromNodeToMouse = null;
@@ -26,7 +25,6 @@ var selectedNode = null;
 var defaultLinkColor = "black";
 
 var onSelectShowTextFieldAttribute = true; //Will show a small html textfield where name of attributes can be changed.
-
 
 if(developing) {
   height=200;
@@ -88,29 +86,21 @@ var svg = d3
 	.select("body")
 	.append("div")
 	.attr("class", "background")
+  .attr("title", "Double-click on a empty spot to create a new node.")
 	.append("svg")
+  //.attr("title", "TEST!")
 	.attr("width", width)
 	.attr("height", height)
 	.on("dblclick", onClickAddNode)
-	.on("click", deselectAll)
+	.on("click", deselectAllInteraction)
 	;
-
-d3.select("body").select("div").append("div");
-var textFieldShowingAttributes = null;
-if(onSelectShowTextFieldAttribute) {
-  textFieldShowingAttributes = d3
-    .select("body")
-    .append("textarea")
-    .attr("rows", 6)
-    .attr("columns", 20)
-    ;
-}
 
 var databaseOutput = d3
 	.select("body")
 	.append("textarea")
 	.attr("rows", 6)
 	.attr("columns",20)
+  .attr("title", "This shows what will be sent to the server.")
 	;
 
 
@@ -129,7 +119,7 @@ svg
 	.attr("d", "M0, -5L10, 0L0,5")
 	;
 
-var nodes = force.nodes(),
+var nodesInteraction = force.nodes(),
 	links = force.links(),
 	node = svg.selectAll(".node"),
 	link = svg.selectAll(".link")
@@ -141,10 +131,10 @@ var nodes = force.nodes(),
 
 function onClickAddNode() {
 	//The if statement is to prevent non-char values.
-	if(nodes.length<=25) {
+	if(nodesInteraction.length<=25) {
 		var point = d3.mouse(this),
-        node = {x: point[0], y: point[1], name:""},
-			n = nodes.push(node);
+        node = {x: point[0], y: point[1], type:"undefined"},
+			n = nodesInteraction.push(node);
 
 
     if(labelsAreEnabledThroughForceLayout) {
@@ -261,7 +251,7 @@ function restart() {
     .on("dblclick", function() {d3.event.stopPropagation}) //Double clicking on a link should not create a new node
 		;
 
-	node = node.data(nodes);
+	node = node.data(nodesInteraction);
 
   node
     .exit()
@@ -301,7 +291,7 @@ function restart() {
 	force.start();
 }
 
-function deselectAll() {
+function deselectAllInteraction() {
   /*
   Attempting to save attribute values
   */
@@ -309,17 +299,23 @@ function deselectAll() {
     console.log("deselectAll");
     console.log("\tselectedNode="+selectedNode);
     console.log("\tlinkThatIsSelected="+linkThatIsSelected);
-    console.log("\t"+textFieldShowingAttributes[0][0].value);
+    //console.log("\t"+textFieldShowingAttributes[0][0].value);
+    //TODO add typeSelector
   }
+
+  var typeSelector = document.getElementById("typeSelector");
 
   if(selectedNode!=null) {
-    selectedNode.__data__.name = textFieldShowingAttributes[0][0].value;
+    //selectedNode.__data__.type = textFieldShowingAttributes[0][0].value;
+    selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
   }
   if(linkThatIsSelected!=null) {
-    linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
+    //linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
+    linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
   }
 
-  textFieldShowingAttributes[0][0].value = "";
+  //TODO, make typeSelector text show nothing or null or whatever is deemed appropriate
+  //textFieldShowingAttributes[0][0].value = "";
   linkThatIsSelected=null;
   onClickAddLinkState[0]=null;
   if(selectedNode!=null) {
@@ -335,10 +331,13 @@ function deselectAll() {
 function onClickInteractiveLink (datum) {
   console.log("A link was clicked");
   if(linksAreSelectabel) {
-    deselectAll();
+    deselectAllInteraction();
     linkThatIsSelected = this;
+    /*
     textFieldShowingAttributes[0][0]
       .value = this.__data__.type;
+    */
+    setSelectTypeToValue(this.__data__.type);
     d3.event.stopPropagation();
   }
 }
@@ -370,14 +369,17 @@ function onClickAddLink (datum) {
 				;
 			selectedNode = null;
 			onClickAddLinkState[0]=null;
-      deselectAll();
+      deselectAllInteraction();
 		}
 	}
-  textFieldShowingAttributes[0][0]
-    .value = datum.name
+  /*textFieldShowingAttributes[0][0]
+    .value = datum.type
     ;
+    */
+  setSelectTypeToValue(datum.type);
 	d3.event.stopPropagation();
 }
+
 
 function onMouseOverNode (datum) {
 	d3.event.stopPropagation(); //2 nodes really shouldn't be on top of eachother but w/e
@@ -416,4 +418,16 @@ function onDragEnd (datum) {
 	nodeThatIsBeingDragged = null;
 	if (nodeThatMouseIsOver==null) return;
 
+}
+
+
+function setSelectTypeToValue( value ) {
+  var typeSelector = document.getElementById("typeSelector");
+    for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
+      var currentText = typeSelector.childNodes[i].text;
+      if(currentText==value) {
+        typeSelector.selectedIndex = i;
+        break;
+      }
+    }
 }

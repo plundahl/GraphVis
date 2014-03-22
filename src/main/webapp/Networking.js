@@ -21,7 +21,7 @@ function orderJSONinOneGraph( returnedObject ) {
 Checks and returns the nodes in a format acceptable to vis.js
 This functions assumes that either all objects are for D3 or for vis.
 */
-function verifyJSONForVisjsNodes( returnedObject, nodes ) {
+function verifyJSONForVisjsNodes( returnedObject ) {
   var returnedNodes = returnedObject.nodes;
 
   if(returnedNodes[0]!=null&&(!_.has(returnedNodes[0], "id"))) {
@@ -64,12 +64,12 @@ function printJSONOutput () {
   var textToTextField="";
   textToTextField += '{"nodes":[';
 
-     for(var iterator = 0; iterator < nodes.length; iterator++) {
-       var keys = _.keys(nodes[iterator]);
+     for(var iterator = 0; iterator < nodesInteraction.length; iterator++) {
+       var keys = _.keys(nodesInteraction[iterator]);
        textToTextField += '{';
        for(var key = 0; key < keys.length; key++){
          if(!_.contains(d3NodeKeyValues, keys[key])) {
-           textToTextField += '"'+keys[key]+'":"'+nodes[iterator][keys[key]]+'",';
+           textToTextField += '"'+keys[key]+'":"'+nodesInteraction[iterator][keys[key]]+'",';
          }
        }
        if(textToTextField.charAt(textToTextField.length -1)==',') {
@@ -115,7 +115,11 @@ function sendToDatabase() {
 		xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
 		xhr_object.onreadystatechange = function() {
 			if (xhr_object.readyState == 4 && xhr_object.status == 200) {
-				updateVisualization(JSON.parse(xhr_object.responseText));
+        var responseObject = JSON.parse(xhr_object.responseText);
+        console.log(responseObject);
+				updateVisualization(responseObject);
+        updateTextAreaWithTextResponse("Test1");
+        updateTextAreaWithSPARQLQuery("Test2");
 			}
 		}
 
@@ -123,4 +127,61 @@ function sendToDatabase() {
 
 		//console.log(requestToDatabase);
 		xhr_object.send(requestToDatabase);
+}
+
+function updateTextAreaWithTextResponse( textResponse ) {
+  var textArea = document.getElementById("SPARQLResponseTextArea");
+  textArea.innerHTML = textResponse;
+}
+
+function updateTextAreaWithSPARQLQuery( SPARQLText ) {
+  var textArea = document.getElementById("SPARQLQueryTextArea");
+  textArea.innerHTML = SPARQLText;
+}
+
+function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
+  var xhr_object = new XMLHttpRequest();
+	xhr_object.open("POST", "http://localhost:8888/"+prefix);
+	xhr_object.setRequestHeader('Accept-Language', 'sv-se');
+	xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
+	xhr_object.onreadystatechange = function() {
+	if (xhr_object.readyState == 4 && xhr_object.status == 200) {
+    var responseObject = JSON.parse(xhr_object.responseText);
+		callingFunction(responseObject);
+	  }
+	}
+  xhr_object.send();
+}
+
+function getPredicatesForInteraction( responseObject ) {
+  if(responseObject==null) {
+    requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction)
+  } else {
+    console.log(responseObject);
+    updatePredicatesForInteraction(responseObject.edgetypes);
+  }
+}
+
+function updatePredicatesForInteraction( types ) {
+  var selector = document.getElementById("selectionOfType");
+  if(types.length>0) {
+    selectorInnerHTML = "<select id='typeSelector'>";
+    for(var iterator=0; iterator<=types.length; iterator++) {
+      //console.log("Added "+types[iterator]);
+      selectorInnerHTML += "<option value='"+types[iterator]+"'>"+
+        types[iterator] + "</option>";
+    }
+    selectorInnerHTML += "</select>"
+    selector.innerHTML = selectorInnerHTML;
+  } else {
+    //TODO
+  }
+}
+
+function getLiteralsForInteraction() {
+
+}
+
+function updateLiteralsForInteraction() {
+
 }
