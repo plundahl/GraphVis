@@ -115,7 +115,9 @@ function sendToDatabase() {
 		xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
 		xhr_object.onreadystatechange = function() {
 			if (xhr_object.readyState == 4 && xhr_object.status == 200) {
-				updateVisualization(JSON.parse(xhr_object.responseText));
+        var responseObject = JSON.parse(xhr_object.responseText);
+        console.log(responseObject);
+				updateVisualization(responseObject);
 			}
 		}
 
