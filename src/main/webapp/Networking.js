@@ -166,6 +166,7 @@ function updatePredicatesForInteraction( types ) {
   var selector = document.getElementById("selectionOfType");
   if(types.length>0) {
     selectorInnerHTML = "<select id='typeSelector'>";
+    selectorInnerHTML += "<option value='?'>?</option>"
     for(var iterator=0; iterator<=types.length; iterator++) {
       //console.log("Added "+types[iterator]);
       selectorInnerHTML += "<option value='"+types[iterator]+"'>"+
