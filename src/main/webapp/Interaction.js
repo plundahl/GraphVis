@@ -2,8 +2,10 @@
 /*
 Static variables
 */
-var width = 1000;
-var height = 250;
+
+var GraphVisInteraction = new Object();
+GraphVisInteraction.width = 1000;
+GraphVisInteraction.height = 300;
 
 var anchorAttributes = ["x", "y","fixed","labels","node"];
 var d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
@@ -27,8 +29,8 @@ var defaultLinkColor = "black";
 var onSelectShowTextFieldAttribute = true; //Will show a small html textfield where name of attributes can be changed.
 
 if(developing) {
-  height=200;
-  width=600;
+  GraphVisInteraction.height=200;
+  GraphVisInteraction.width=600;
 }
 
 /*
@@ -56,7 +58,7 @@ if(labelsAreEnabledThroughForceLayout) {
     .charge(-120)
     .linkStrength(5)
 	  .linkDistance(labelLinkDistanceInInteraction)
-	  .size([width, height])
+	  .size([GraphVisInteraction.width, GraphVisInteraction.height])
 	  .gravity(0)
 	  ;
   labelLayoutForce.start();
@@ -65,7 +67,7 @@ if(labelsAreEnabledThroughForceLayout) {
 var force = d3
 	.layout
 	.force()
-	.size([width, height])
+	.size([GraphVisInteraction.width, GraphVisInteraction.height])
 	.nodes([])
 	.linkDistance(90)
 	.charge(-300)
@@ -89,20 +91,11 @@ var svg = d3
   .attr("title", "Double-click on a empty spot to create a new node.")
 	.append("svg")
   //.attr("title", "TEST!")
-	.attr("width", width)
-	.attr("height", height)
+	.attr("width", GraphVisInteraction.width)
+	.attr("height", GraphVisInteraction.height)
 	.on("dblclick", onClickAddNode)
 	.on("click", deselectAllInteraction)
 	;
-
-var databaseOutput = d3
-	.select("body")
-	.append("textarea")
-	.attr("rows", 6)
-	.attr("columns",20)
-  .attr("title", "This shows what will be sent to the server.")
-	;
-
 
 //Markers!?
 svg
@@ -121,11 +114,24 @@ svg
 
 var nodesInteraction = force.nodes(),
 	links = force.links(),
+  linkLabels = svg.selectAll(".linkLabels"),
 	node = svg.selectAll(".node"),
-	link = svg.selectAll(".link")
+  nodeLabels = svg.selectAll(".nodeLabels"),
+	link = svg.selectAll(".link"),
 	anchorLink = svg.selectAll(".anchorLink"),
   anchorNode = svg.selectAll("g.anchorNode")
 	;
+
+
+var databaseOutput = d3
+	.select("body")
+	.append("textarea")
+	.attr("rows", 6)
+	.attr("columns",20)
+  .attr("title", "This shows what will be sent to the server.")
+	;
+
+
 
 
 
@@ -133,7 +139,7 @@ function onClickAddNode() {
 	//The if statement is to prevent non-char values.
 	if(nodesInteraction.length<=25) {
 		var point = d3.mouse(this),
-        node = {x: point[0], y: point[1], type:"undefined"},
+        node = {x: point[0], y: point[1], type:"?"},
 			n = nodesInteraction.push(node);
 
 
@@ -168,165 +174,11 @@ function onClickAddNode() {
 	}
 }
 
-/*
-What happens on each tick of the force-layout
-*/
-function tick() {
-
-	/*link
-		.attr("x1", function(d) {return d.source.x; })
-		.attr("y1", function(d) {return d.source.y; })
-		.attr("x2", function(d) {return d.target.x; })
-		.attr("y2", function(d) {return d.target.y; })
-		;
-	       */
-
-	link
-		.attr("d", linkArc);
-
-	node
-		.attr("cx", function(d) {return d.x;})
-		.attr("cy", function(d) {return d.y;})
-		;
-
-  if(labelsAreEnabledThroughForceLayout) {
-    labelLayoutForce.start();
-    anchorNode.each(function(d,i) {
-      if(_.has(d, "labels")) { //If it is a anchor node (it should just keep upp with the node it is being anchored to)
-        d.x = d.node.x;
-        d.y = d.node.y;
-      } else { //If it isn't a anchor node
-        /*console.log("Fel här");
-        console.log("This");
-        console.log(this);
-        console.log("Datum");
-        console.log(d);
-        */
-        var b = this.childNodes[0].getBBox();
-
-				var diffX = d.x - d.node.x;
-				var diffY = d.y - d.node.y;
-
-				var dist = Math.sqrt(diffX * diffX + diffY * diffY);
-
-				var shiftX = b.width * (diffX - dist) / (dist * 2);
-				shiftX = Math.max(-b.width, Math.min(0, shiftX));
-				var shiftY = 5;
-				this.childNodes[0].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
-      }
-    });
-    anchorLink
-	  	.attr("x1", function(d) {return d.source.x; })
-		  .attr("y1", function(d) {return d.source.y; })
-	  	.attr("x2", function(d) {return d.target.x; })
-	  	.attr("y2", function(d) {return d.target.y; })
-		  ;
-    anchorNode.call(updateNode);
-  }
-}
-
 var updateNode = function() {
 	this.attr("transform", function(d) {
 		return "translate(" + d.x + "," + d.y + ")";
 	});
 }
-
-/*
-Should be run each time something new is added to interaction
-*/
-function restart() {
-	link = link.data(links);
-
-  link
-    .exit()
-    .remove()
-    ;
-
-	link
-		.enter()
-		.insert("path", ".node")
-		.attr("class", "link")
-		.attr("marker-end", "url(#end)")
-    .on("click", onClickInteractiveLink)
-    .on("dblclick", function() {d3.event.stopPropagation}) //Double clicking on a link should not create a new node
-		;
-
-	node = node.data(nodesInteraction);
-
-  node
-    .exit()
-    .remove()
-    ;
-
-	node
-		.enter()
-		.insert("circle", ".cursor") //Hm ... ?
-		.attr("class", "node")
-		.attr("r", 10)
-		.on("click", onClickAddLink)
-		.on("dblclick", function() {d3.event.stopPropagation();})
-		.on("mouseover", onMouseOverNode)
-		.on("mouseout", onMouseExitNode)
-		.call(dragHandler)
-		;
-
-  if(labelsAreEnabledThroughForceLayout) {
-    anchorLink = anchorLink.data(labelLayoutLinks);
-
-    anchorNode = anchorNode.data(labelLayoutNodes)
-      ;
-
-    anchorNode
-      .enter()
-      .append("svg:g")
-      .append("svg:text")
-      .text(function(d) {
-      return d.text;
-      })
-      ;
-  }
-
-  printJSONOutput();
-
-	force.start();
-}
-
-function deselectAllInteraction() {
-  /*
-  Attempting to save attribute values
-  */
-  if(developing) {
-    console.log("deselectAll");
-    console.log("\tselectedNode="+selectedNode);
-    console.log("\tlinkThatIsSelected="+linkThatIsSelected);
-    //console.log("\t"+textFieldShowingAttributes[0][0].value);
-    //TODO add typeSelector
-  }
-
-  var typeSelector = document.getElementById("typeSelector");
-
-  if(selectedNode!=null) {
-    //selectedNode.__data__.type = textFieldShowingAttributes[0][0].value;
-    selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
-  }
-  if(linkThatIsSelected!=null) {
-    //linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
-    linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
-  }
-
-  //TODO, make typeSelector text show nothing or null or whatever is deemed appropriate
-  //textFieldShowingAttributes[0][0].value = "";
-  linkThatIsSelected=null;
-  onClickAddLinkState[0]=null;
-  if(selectedNode!=null) {
-    d3
-			.select(selectedNode)
-			.style("fill", "black")
-			;
-  }
-	selectedNode=null;
-  printJSONOutput(); //Update
-};
 
 function onClickInteractiveLink (datum) {
   console.log("A link was clicked");
@@ -361,7 +213,7 @@ function onClickAddLink (datum) {
 			;
 	} else { //If a starting node has already been selected
 		if (onClickAddLinkState[0]!=datum) {
-      links.push({source: onClickAddLinkState[0], target: datum, type:""});
+      links.push({source: onClickAddLinkState[0], target: datum, type:"?"});
 			restart();
 			d3
 				.select(selectedNode)
@@ -431,3 +283,199 @@ function setSelectTypeToValue( value ) {
       }
     }
 }
+
+
+/*
+Should be run each time something new is added to interaction
+*/
+function restart() {
+	link = link.data(links);
+  linkLabels = linkLabels.data(links);
+
+  link
+    .exit()
+    .remove()
+    ;
+
+  linkLabels
+    .exit()
+    .remove()
+    ;
+
+	link
+		.enter()
+		.insert("path", ".node")
+		.attr("class", "link")
+		.attr("marker-end", "url(#end)")
+    .attr("id", function(d,i) {return 'linkpath'+i;})
+  .attr("internalInteractionID", function(d,i) {return i;})
+    .on("click", onClickInteractiveLink)
+    .on("dblclick", function() {d3.event.stopPropagation}) //Double clicking on a link should not create a new node
+		;
+
+  linkLabels
+    .enter()
+    .append("text")
+    .attr("class", "unselectableTextLabel")
+    .attr("fill", "YELLOW")
+    /*
+    Serves no purpose to set x and/or y outside of tick
+    */
+    .text(function(d,i) {return String(d.type)})
+    ;
+
+	node = node.data(nodesInteraction);
+
+  nodeLabels = nodeLabels.data(nodesInteraction);
+
+  node
+    .exit()
+    .remove()
+    ;
+
+  nodeLabels
+    .exit()
+    .remove()
+    ;
+
+	node
+		.enter()
+		.insert("circle", ".cursor") //Hm ... ?
+		.attr("class", "node")
+		.attr("r", 10)
+    .attr("internalInteractionID", function(d,i) {return i;})
+		.on("click", onClickAddLink)
+		.on("dblclick", function() {d3.event.stopPropagation();})
+		.on("mouseover", onMouseOverNode)
+		.on("mouseout", onMouseExitNode)
+		.call(dragHandler)
+		;
+
+  nodeLabels
+    .enter()
+    .append("text")
+    .attr("class", "unselectableTextLabel")
+    .attr("fill", "BLUE")
+    .text(function(d) {return d.type;})
+    ;
+
+  if(labelsAreEnabledThroughForceLayout) {
+    anchorLink = anchorLink.data(labelLayoutLinks);
+
+    anchorNode = anchorNode.data(labelLayoutNodes)
+      ;
+
+    anchorNode
+      .enter()
+      .append("svg:g")
+      .append("svg:text")
+      .text(function(d) {
+      return d.text;
+      })
+      ;
+  }
+
+  printJSONOutput();
+
+	force.start();
+}
+
+/*
+What happens on each tick of the force-layout
+*/
+function tick() {
+
+	link
+		.attr("d", linkArc);
+
+  linkLabels
+    .attr("x", function(d, i) {
+      var minX = Math.min(d.target.x, d.source.x);
+      var maxX = Math.max(d.target.x, d.source.x);
+      return minX + (maxX-minX)/2;
+    })
+    .attr("y", function(d) {
+      var minY = Math.min(d.target.y, d.source.y);
+      var maxY = Math.max(d.target.y, d.source.y);
+      return minY + (maxY-minY)/2;
+    })
+  //.text(function(d) {return d.type;})
+    ;
+
+	node
+		.attr("cx", function(d) {return d.x;})
+		.attr("cy", function(d) {return d.y;})
+		;
+
+  nodeLabels
+    .attr("x", function(d) {return d.x+10;})
+    .attr("y", function(d) {return d.y+10;})
+    ;
+
+  if(labelsAreEnabledThroughForceLayout) {
+    labelLayoutForce.start();
+    anchorNode.each(function(d,i) {
+      if(_.has(d, "labels")) { //If it is a anchor node (it should just keep upp with the node it is being anchored to)
+        d.x = d.node.x;
+        d.y = d.node.y;
+      } else { //If it isn't a anchor node
+        var b = this.childNodes[0].getBBox();
+				var diffX = d.x - d.node.x;
+				var diffY = d.y - d.node.y;
+				var dist = Math.sqrt(diffX * diffX + diffY * diffY);
+				var shiftX = b.width * (diffX - dist) / (dist * 2);
+				shiftX = Math.max(-b.width, Math.min(0, shiftX));
+				var shiftY = 5;
+				this.childNodes[0].setAttribute("transform", "translate(" + shiftX + "," + shiftY + ")");
+      }
+    });
+    anchorLink
+	  	.attr("x1", function(d) {return d.source.x; })
+		  .attr("y1", function(d) {return d.source.y; })
+	  	.attr("x2", function(d) {return d.target.x; })
+	  	.attr("y2", function(d) {return d.target.y; })
+		  ;
+    anchorNode.call(updateNode);
+  }
+}
+
+function deselectAllInteraction() {
+  /*
+  Attempting to save attribute values
+  */
+  if(developing) {
+    console.log("deselectAll");
+    console.log("\tselectedNode="+selectedNode);
+    console.log("\tlinkThatIsSelected="+linkThatIsSelected);
+    //console.log("\t"+textFieldShowingAttributes[0][0].value);
+    //TODO add typeSelector
+  }
+
+  var typeSelector = document.getElementById("typeSelector");
+
+  if(selectedNode!=null) {
+    //selectedNode.__data__.type = textFieldShowingAttributes[0][0].value;
+    selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    var index = d3.select(selectedNode).attr("internalInteractionID");
+    nodeLabels[0][index].childNodes[0].data = selectedNode.__data__.type;
+  }
+  if(linkThatIsSelected!=null) {
+    //linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
+    linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    var index = d3.select(linkThatIsSelected).attr("internalInteractionID");
+    linkLabels[0][index].childNodes[0].data = linkThatIsSelected.__data__.type;
+  }
+
+  //TODO, make typeSelector text show nothing or null or whatever is deemed appropriate
+  //textFieldShowingAttributes[0][0].value = "";
+  linkThatIsSelected=null;
+  onClickAddLinkState[0]=null;
+  if(selectedNode!=null) {
+    d3
+			.select(selectedNode)
+			.style("fill", "black")
+			;
+  }
+	selectedNode=null;
+  printJSONOutput(); //Update
+};
