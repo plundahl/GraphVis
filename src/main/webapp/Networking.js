@@ -200,7 +200,17 @@ function getLiteralsForInteraction( responseObject ) {
   if(responseObject==null) {
     requestFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction)
   } else {
-    GraphVisInteraction.availableLiterals = responseObject.literals;
+    //GraphVisInteraction.availableLiterals = responseObject.literals;
+    /*
+    TEST LITERALS
+    */
+    var testString = '{"literals":{'
+      +'"Jasmin":["Server","Communication"],'
+      +'"Johan":["Visualization"],'
+      +'"Jonatan":["Interaction"],'
+      +'"Petter":["Jena","Conversion to SPARQL"]}}';
+    GraphVisInteraction.availableLiterals = JSON.parse(testString).literals;
+    console.log(GraphVisInteraction.availableLiterals);
     console.log("Available literals for interaction " + GraphVisInteraction.availableLiterals);
     //console.log(availableLiterals);
   }

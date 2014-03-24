@@ -210,7 +210,7 @@ function linkArc(d) {
 	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 0,1 "+d.target.x+","+d.target.y;
 }
 
-function onClickAddLink (datum) {
+function onClickAddLink(datum) {
 	if(d3.event.defaultPrevented) return;
   /*
   This is when a node gets selected...
@@ -222,7 +222,7 @@ function onClickAddLink (datum) {
 			.select(GraphVisInteraction.selectedNode)
 			.style("fill", "green")
 			;
-    GraphVisInteraction.updateSelectorWithLiterals(datum.literal);
+    GraphVisInteraction.updateSelectorWithLiterals(datum.type);
 	} else { //If a starting node has already been selected
 		if (onClickAddLinkState[0]!=datum) {
       links.push({source: onClickAddLinkState[0], target: datum, type:"?"});
@@ -240,7 +240,7 @@ function onClickAddLink (datum) {
     .value = datum.type
     ;
     */
-  setSelectTypeToValue(datum.type);
+  //setSelectTypeToValue(datum.type);
 	d3.event.stopPropagation();
 }
 
@@ -467,7 +467,9 @@ function deselectAllInteraction() {
   var selectionOfLiteralsOrPredicate = document.getElementById("literalOrPredicateSelector");
 
   if(GraphVisInteraction.selectedNode!=null) {
-    GraphVisInteraction.selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    //GraphVisInteraction.selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+
+    GraphVisInteraction.selectedNode.__data__.type = selectionOfLiteralsOrPredicate.options[selectionOfLiteralsOrPredicate.selectedIndex].text;
 
     var index = d3.select(GraphVisInteraction.selectedNode).attr("internalInteractionID");
     nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
@@ -496,14 +498,15 @@ function deselectAllInteraction() {
 };
 
 GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral ) {
-  var selector = document.getElementById("selectionOfLiteralsOrPredicate");
-  var selectorInnerHTML = "Select literal: <select id='literalOrPredicateSelector'>";
+  var selector = document.getElementById("selectionForInteractive");
+  var selectorInnerHTML = "Select literal: <select id='literalOrPredicateSelector' onchange='GraphVisInteraction.updateSelectorWithLiteralValues()'>";
   selectorInnerHTML += "<option value='?'>?</option>"
-  for(var iterator=0; iterator < GraphVisInteraction.availableLiterals.length; iterator++) {
-    selectorInnerHTML += "<option value='"+GraphVisInteraction.availableLiterals[iterator]+"'>"+
-      GraphVisInteraction.availableLiterals[iterator] + "</option>";
+  var availableLiterals = _.keys(GraphVisInteraction.availableLiterals);
+  for(var iterator=0; iterator < availableLiterals.length; iterator++) {
+    selectorInnerHTML += "<option value='"+availableLiterals[iterator]+"'>"+
+    availableLiterals[iterator] + "</option>";
   }
-  selectorInnerHTML += "</select>"
+  selectorInnerHTML += "</select><select id='literalValueSelector'><option value=''></selector>";
   selector.innerHTML = selectorInnerHTML;
 
   var typeSelector = document.getElementById("literalOrPredicateSelector");
@@ -515,6 +518,21 @@ GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral ) {
       break;
     }
   }
+}
+GraphVisInteraction.updateSelectorWithLiteralValues = function() {
+  var outerSelector = document.getElementById("literalOrPredicateSelector");
+  var innerSelector = document.getElementById("literalValueSelector");
+
+  var literal = outerSelector.options[outerSelector.selectedIndex].text;
+  var innerElements = GraphVisInteraction.availableLiterals[literal];
+
+  var innerHTML = "<option value=''></option>";
+  for(var iterator=0; iterator<innerElements.length; iterator++) {
+    innerHTML += "<option value='"+innerElements[iterator]+"'>"+
+      innerElements[iterator]+
+      "</option>";
+  }
+  innerSelector.innerHTML = innerHTML;
 }
 
 GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) {
@@ -557,7 +575,6 @@ GraphVisInteraction.updateSelectorWithDeselect = function() {
   var selectionForInteractive = document.getElementById("selectionForInteractive");
   var innerHTML = "Select a node or link to update this section.";
   selectionForInteractive.innerHTML = innerHTML;
-  console.log("Check");
   /*
   var selectionOfLiteralsOrPredicate = document.getElementById("selectionOfLiteralsOrPredicate");
   var selectorInnerHTML = "Select a node or link for options: <select id='literalOrPredicateSelector'><option value='none'>-</option></select>";
