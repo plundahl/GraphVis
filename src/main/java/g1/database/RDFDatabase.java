@@ -101,7 +101,7 @@ public class RDFDatabase {
     } finally { qexec.close() ; }
   }
 
-  public String jsonQuery(String jsonString)
+  public synchronized String jsonQuery(String jsonString)
   {
     Gson gson = new Gson();
     Graph queryGraph = gson.fromJson(jsonString, Graph.class);
@@ -185,7 +185,7 @@ public class RDFDatabase {
   }
 
   //Returns all the possible 'edges' in the graph.
-  public String getPredicates()
+  public synchronized String getPredicates()
   {
     String queryString =
       "SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))}";
@@ -211,7 +211,7 @@ public class RDFDatabase {
 
 
   //Returns all the Literals in the RDF-data as a JSON array.
-  public String getLiterals()
+  public synchronized String getLiterals()
   {
     String queryString = 
       "SELECT DISTINCT ?lit {?s ?p ?lit  filter(isLiteral(?lit)) }";
@@ -231,7 +231,7 @@ public class RDFDatabase {
     closeQuery();
     return resultStr;
   }
-  public String getTypes()
+  public synchronized String getTypes()
   {
     String queryString =
       "SELECT distinct ?type { ?s a ?type }";
