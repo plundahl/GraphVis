@@ -9,6 +9,10 @@ GraphVisInteraction.height = 300;
 GraphVisInteraction.anchorAttributes = ["x", "y","fixed","labels","node"];
 GraphVisInteraction.d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
 
+GraphVisInteraction.availableTypes = null;
+GraphVisInteraction.availablePredicates = null;
+GraphVisInteraction.availableLiterals = null;
+
 
 var developing = false;
 var labelsAreEnabledThroughForceLayout = false;
@@ -85,10 +89,13 @@ var dragHandler = d3
 	;
 
 var svg = d3
+/*
 	.select("body")
 	.append("div")
 	.attr("class", "background")
   .attr("title", "Double-click on a empty spot to create a new node.")
+  */
+  .select("#backgroundForInteraction")
 	.append("svg")
   //.attr("title", "TEST!")
 	.attr("width", GraphVisInteraction.width)
@@ -124,13 +131,14 @@ var nodesInteraction = force.nodes(),
 
 
 var databaseOutput = d3
-	.select("body")
-	.append("textarea")
+	//.select("body")
+	//.append("textarea")
+  .select("#databaseOutput")
 	.attr("rows", 6)
 	.attr("columns",20)
   .attr("title", "This shows what will be sent to the server.")
 	;
-
+console.log(databaseOutput);
 
 
 
@@ -185,11 +193,11 @@ function onClickInteractiveLink (datum) {
   if(GraphVisInteraction.linksAreSelectabel) {
     deselectAllInteraction();
     GraphVisInteraction.linkThatIsSelected = this;
-    /*
-    textFieldShowingAttributes[0][0]
-      .value = this.__data__.type;
-    */
-    setSelectTypeToValue(this.__data__.type);
+
+    //setSelectTypeToValue(this.__data__.type);
+
+    GraphVisInteraction.updateSelectorWithPredicates( datum.type );
+
     d3.event.stopPropagation();
   }
 }
@@ -204,6 +212,9 @@ function linkArc(d) {
 
 function onClickAddLink (datum) {
 	if(d3.event.defaultPrevented) return;
+  /*
+  This is when a node gets selected...
+  */
 	if(onClickAddLinkState[0]===null) { //If the start node is not selected
 		onClickAddLinkState[0]=datum;
 		GraphVisInteraction.selectedNode = this;
@@ -211,6 +222,7 @@ function onClickAddLink (datum) {
 			.select(GraphVisInteraction.selectedNode)
 			.style("fill", "green")
 			;
+    GraphVisInteraction.updateSelectorWithLiterals(datum.type);
 	} else { //If a starting node has already been selected
 		if (onClickAddLinkState[0]!=datum) {
       links.push({source: onClickAddLinkState[0], target: datum, type:"?"});
@@ -275,13 +287,13 @@ function onDragEnd (datum) {
 
 function setSelectTypeToValue( value ) {
   var typeSelector = document.getElementById("typeSelector");
-    for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
-      var currentText = typeSelector.childNodes[i].text;
-      if(currentText==value) {
-        typeSelector.selectedIndex = i;
-        break;
-      }
+  for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
+    var currentText = typeSelector.childNodes[i].text;
+    if(currentText==value) {
+      typeSelector.selectedIndex = i;
+      break;
     }
+  }
 }
 
 
@@ -452,15 +464,15 @@ function deselectAllInteraction() {
   }
 
   var typeSelector = document.getElementById("typeSelector");
+  var selectionOfLiteralsOrPredicate = document.getElementById("selectionOfLiteralsOrPredicate");
 
   if(GraphVisInteraction.selectedNode!=null) {
-    //selectedNode.__data__.type = textFieldShowingAttributes[0][0].value;
     GraphVisInteraction.selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+
     var index = d3.select(GraphVisInteraction.selectedNode).attr("internalInteractionID");
     nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
   }
   if(GraphVisInteraction.linkThatIsSelected!=null) {
-    //linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
     GraphVisInteraction.linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
     var index = d3.select(GraphVisInteraction.linkThatIsSelected).attr("internalInteractionID");
     linkLabels[0][index].childNodes[0].data = GraphVisInteraction.linkThatIsSelected.__data__.type;
@@ -477,5 +489,64 @@ function deselectAllInteraction() {
 			;
   }
 	GraphVisInteraction.selectedNode=null;
+  GraphVisInteraction.updateSelectorWithDeselect();
   printJSONOutput(); //Update
 };
+
+GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral ) {
+  var selector = document.getElementById("selectionOfLiteralsOrPredicate");
+  var selectorInnerHTML = "Select literal: <select id='literalOrPredicateSelector'>";
+  selectorInnerHTML += "<option value='?'>?</option>"
+  for(var iterator=0; iterator < GraphVisInteraction.availableLiterals.length; iterator++) {
+    selectorInnerHTML += "<option value='"+GraphVisInteraction.availableLiterals[iterator]+"'>"+
+      GraphVisInteraction.availableLiterals[iterator] + "</option>";
+  }
+  selectorInnerHTML += "</select>"
+  selector.innerHTML = selectorInnerHTML;
+
+  for(var i = selector.childNodes.length-1; i>=0; i--) {
+    var currentText = typeSelector.childNodes[i].text;
+    if(currentText==currentLiteral) {
+      selector.selectedIndex = i;
+      break;
+    }
+  }
+}
+
+GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) {
+  var selector = document.getElementById("selectionOfLiteralsOrPredicate");
+  var selectorInnerHTML = "Select predicate: <select id='literalOrPredicateSelector'>";
+  selectorInnerHTML += "<option value='?'>?</option>"
+  for(var iterator=0; iterator < GraphVisInteraction.availablePredicates.length; iterator++) {
+    selectorInnerHTML += "<option value='"+GraphVisInteraction.availablePredicates[iterator]+"'>"+
+      GraphVisInteraction.availablePredicates[iterator] + "</option>";
+  }
+  selectorInnerHTML += "</select>"
+  selector.innerHTML = selectorInnerHTML;
+
+  for(var i = selector.childNodes.length-1; i>=0; i--) {
+    var currentText = selector.childNodes[i].text;
+    if(currentText==currentPredicate) {
+      typeSelector.selectedIndex = i;
+      break;
+    }
+  }
+}
+
+GraphVisInteraction.updateSelectorWithTypes = function() {
+  var selector = document.getElementById("selectionOfType");
+  var selectorInnerHTML = "Select type: <select id='typeSelector'>";
+  selectorInnerHTML += "<option value='?'>?</option>"
+  for(var iterator=0; iterator < GraphVisInteraction.availableTypes.length; iterator++) {
+    selectorInnerHTML += "<option value='"+GraphVisInteraction.availableTypes[iterator]+"'>"+
+      GraphVisInteraction.availableTypes[iterator] + "</option>";
+  }
+  selectorInnerHTML += "</select>"
+  selector.innerHTML = selectorInnerHTML;
+}
+
+GraphVisInteraction.updateSelectorWithDeselect = function() {
+  var selectionOfLiteralsOrPredicate = document.getElementById("selectionOfLiteralsOrPredicate");
+  var selectorInnerHTML = "Select a node or link for options: <select id='literalOrPredicateSelector'><option value='none'>-</option></select>";
+  selectionOfLiteralsOrPredicate.innerHTML = selectorInnerHTML;
+}
