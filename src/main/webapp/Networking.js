@@ -190,7 +190,7 @@ function getTypesForInteraction( responseObject ) {
   } else {
     GraphVisInteraction.availableTypes = responseObject.types;
     console.log("Available types for interaction " + GraphVisInteraction.availableTypes);
-    GraphVisInteraction.updateSelectorWithTypes();
+    //GraphVisInteraction.updateSelectorWithTypes();
     //console.log(GraphVisInteraction.availableTypes);
   }
 }

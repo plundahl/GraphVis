@@ -222,7 +222,7 @@ function onClickAddLink (datum) {
 			.select(GraphVisInteraction.selectedNode)
 			.style("fill", "green")
 			;
-    GraphVisInteraction.updateSelectorWithLiterals(datum.type);
+    GraphVisInteraction.updateSelectorWithLiterals(datum.literal);
 	} else { //If a starting node has already been selected
 		if (onClickAddLinkState[0]!=datum) {
       links.push({source: onClickAddLinkState[0], target: datum, type:"?"});
@@ -464,7 +464,7 @@ function deselectAllInteraction() {
   }
 
   var typeSelector = document.getElementById("typeSelector");
-  var selectionOfLiteralsOrPredicate = document.getElementById("selectionOfLiteralsOrPredicate");
+  var selectionOfLiteralsOrPredicate = document.getElementById("literalOrPredicateSelector");
 
   if(GraphVisInteraction.selectedNode!=null) {
     GraphVisInteraction.selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
@@ -473,7 +473,9 @@ function deselectAllInteraction() {
     nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
   }
   if(GraphVisInteraction.linkThatIsSelected!=null) {
-    GraphVisInteraction.linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    //GraphVisInteraction.linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    GraphVisInteraction.linkThatIsSelected.__data__.type = selectionOfLiteralsOrPredicate.options[selectionOfLiteralsOrPredicate.selectedIndex].text;
+
     var index = d3.select(GraphVisInteraction.linkThatIsSelected).attr("internalInteractionID");
     linkLabels[0][index].childNodes[0].data = GraphVisInteraction.linkThatIsSelected.__data__.type;
   }
@@ -504,17 +506,19 @@ GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral ) {
   selectorInnerHTML += "</select>"
   selector.innerHTML = selectorInnerHTML;
 
-  for(var i = selector.childNodes.length-1; i>=0; i--) {
+  var typeSelector = document.getElementById("literalOrPredicateSelector");
+
+  for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
     var currentText = typeSelector.childNodes[i].text;
     if(currentText==currentLiteral) {
-      selector.selectedIndex = i;
+      typeSelector.selectedIndex = i;
       break;
     }
   }
 }
 
 GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) {
-  var selector = document.getElementById("selectionOfLiteralsOrPredicate");
+  var selector = document.getElementById("selectionForInteractive");
   var selectorInnerHTML = "Select predicate: <select id='literalOrPredicateSelector'>";
   selectorInnerHTML += "<option value='?'>?</option>"
   for(var iterator=0; iterator < GraphVisInteraction.availablePredicates.length; iterator++) {
@@ -524,8 +528,10 @@ GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) 
   selectorInnerHTML += "</select>"
   selector.innerHTML = selectorInnerHTML;
 
-  for(var i = selector.childNodes.length-1; i>=0; i--) {
-    var currentText = selector.childNodes[i].text;
+  var typeSelector = document.getElementById("literalOrPredicateSelector");
+
+  for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
+    var currentText = typeSelector.childNodes[i].text;
     if(currentText==currentPredicate) {
       typeSelector.selectedIndex = i;
       break;
@@ -533,6 +539,7 @@ GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) 
   }
 }
 
+/*
 GraphVisInteraction.updateSelectorWithTypes = function() {
   var selector = document.getElementById("selectionOfType");
   var selectorInnerHTML = "Select type: <select id='typeSelector'>";
@@ -544,9 +551,16 @@ GraphVisInteraction.updateSelectorWithTypes = function() {
   selectorInnerHTML += "</select>"
   selector.innerHTML = selectorInnerHTML;
 }
+*/
 
 GraphVisInteraction.updateSelectorWithDeselect = function() {
+  var selectionForInteractive = document.getElementById("selectionForInteractive");
+  var innerHTML = "Select a node or link to update this section.";
+  selectionForInteractive.innerHTML = innerHTML;
+  console.log("Check");
+  /*
   var selectionOfLiteralsOrPredicate = document.getElementById("selectionOfLiteralsOrPredicate");
   var selectorInnerHTML = "Select a node or link for options: <select id='literalOrPredicateSelector'><option value='none'>-</option></select>";
   selectionOfLiteralsOrPredicate.innerHTML = selectorInnerHTML;
+  */
 }
