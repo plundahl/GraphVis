@@ -68,7 +68,7 @@ function printJSONOutput () {
        var keys = _.keys(nodesInteraction[iterator]);
        textToTextField += '{';
        for(var key = 0; key < keys.length; key++){
-         if(!_.contains(d3NodeKeyValues, keys[key])) {
+         if(!_.contains(GraphVisInteraction.d3NodeKeyValues, keys[key])) {
            textToTextField += '"'+keys[key]+'":"'+nodesInteraction[iterator][keys[key]]+'",';
          }
        }
@@ -85,7 +85,7 @@ function printJSONOutput () {
     var keys = _.keys(links[iterator]);
     textToTextField += '{';
     for(var key = 0; key < keys.length; key++) {
-      if(!_.contains(d3NodeKeyValues, keys[key])) {
+      if(!_.contains(GraphVisInteraction.d3NodeKeyValues, keys[key])) {
         textToTextField += '"'+keys[key]+'":"'+links[iterator][keys[key]]+'",';
       }
     }

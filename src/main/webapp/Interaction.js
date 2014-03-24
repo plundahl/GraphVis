@@ -6,9 +6,9 @@ Static variables
 var GraphVisInteraction = new Object();
 GraphVisInteraction.width = 1000;
 GraphVisInteraction.height = 300;
+GraphVisInteraction.anchorAttributes = ["x", "y","fixed","labels","node"];
+GraphVisInteraction.d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
 
-var anchorAttributes = ["x", "y","fixed","labels","node"];
-var d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
 
 var developing = false;
 var labelsAreEnabledThroughForceLayout = false;
@@ -16,13 +16,13 @@ var labelsAreEnabledThroughForceLayout = false;
 var nodesAreSelectabel = true; //This currently does not work.
 var nodeSelected = null; //Reference to the node that has been selected
 var onClickAddLinkState = [null, null]; //This should be removed at some point
-var linksAreSelectabel = true; //Currently working on this.
-var linkThatIsSelected = null;
+GraphVisInteraction.linksAreSelectabel = true;
+GraphVisInteraction.linkThatIsSelected = null;
 
-var nodeThatMouseIsOver = null;
+GraphVisInteraction.nodeThatMouseIsOver = null;
 var nodeThatIsBeingDragged = null;
 var pathFromNodeToMouse = null;
-var selectedNode = null;
+GraphVisInteraction.selectedNode = null;
 
 var defaultLinkColor = "black";
 
@@ -182,9 +182,9 @@ var updateNode = function() {
 
 function onClickInteractiveLink (datum) {
   console.log("A link was clicked");
-  if(linksAreSelectabel) {
+  if(GraphVisInteraction.linksAreSelectabel) {
     deselectAllInteraction();
-    linkThatIsSelected = this;
+    GraphVisInteraction.linkThatIsSelected = this;
     /*
     textFieldShowingAttributes[0][0]
       .value = this.__data__.type;
@@ -206,9 +206,9 @@ function onClickAddLink (datum) {
 	if(d3.event.defaultPrevented) return;
 	if(onClickAddLinkState[0]===null) { //If the start node is not selected
 		onClickAddLinkState[0]=datum;
-		selectedNode = this;
+		GraphVisInteraction.selectedNode = this;
 		d3
-			.select(selectedNode)
+			.select(GraphVisInteraction.selectedNode)
 			.style("fill", "green")
 			;
 	} else { //If a starting node has already been selected
@@ -216,10 +216,10 @@ function onClickAddLink (datum) {
       links.push({source: onClickAddLinkState[0], target: datum, type:"?"});
 			restart();
 			d3
-				.select(selectedNode)
+				.select(GraphVisInteraction.selectedNode)
 				.style("fill", "black")
 				;
-			selectedNode = null;
+			GraphVisInteraction.selectedNode = null;
 			onClickAddLinkState[0]=null;
       deselectAllInteraction();
 		}
@@ -235,7 +235,7 @@ function onClickAddLink (datum) {
 
 function onMouseOverNode (datum) {
 	d3.event.stopPropagation(); //2 nodes really shouldn't be on top of eachother but w/e
-	nodeThatMouseIsOver = this;
+	GraphVisInteraction.nodeThatMouseIsOver = this;
 	d3.select(this)
 		.style("fill", "green")
 		;
@@ -243,8 +243,8 @@ function onMouseOverNode (datum) {
 
 function onMouseExitNode (datum) {
 	d3.event.stopPropagation();
-	nodeThatMouseIsOver = null;
-	if(this==selectedNode) return;
+	GraphVisInteraction.nodeThatMouseIsOver = null;
+	if(this==GraphVisInteraction.selectedNode) return;
 	d3.select(this)
 		.style("fill", "black")
 		;
@@ -268,7 +268,7 @@ function onDragStart (datum) {
 function onDragEnd (datum) {
 	d3.event.sourceEvent.stopPropagation(); //Should never be propagated
 	nodeThatIsBeingDragged = null;
-	if (nodeThatMouseIsOver==null) return;
+	if (GraphVisInteraction.nodeThatMouseIsOver==null) return;
 
 }
 
@@ -445,37 +445,37 @@ function deselectAllInteraction() {
   */
   if(developing) {
     console.log("deselectAll");
-    console.log("\tselectedNode="+selectedNode);
-    console.log("\tlinkThatIsSelected="+linkThatIsSelected);
+    console.log("\tselectedNode="+GraphVisInteraction.selectedNode);
+    console.log("\tlinkThatIsSelected="+GraphVisInteraction.linkThatIsSelected);
     //console.log("\t"+textFieldShowingAttributes[0][0].value);
     //TODO add typeSelector
   }
 
   var typeSelector = document.getElementById("typeSelector");
 
-  if(selectedNode!=null) {
+  if(GraphVisInteraction.selectedNode!=null) {
     //selectedNode.__data__.type = textFieldShowingAttributes[0][0].value;
-    selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
-    var index = d3.select(selectedNode).attr("internalInteractionID");
-    nodeLabels[0][index].childNodes[0].data = selectedNode.__data__.type;
+    GraphVisInteraction.selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    var index = d3.select(GraphVisInteraction.selectedNode).attr("internalInteractionID");
+    nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
   }
-  if(linkThatIsSelected!=null) {
+  if(GraphVisInteraction.linkThatIsSelected!=null) {
     //linkThatIsSelected.__data__.type = textFieldShowingAttributes[0][0].value;
-    linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
-    var index = d3.select(linkThatIsSelected).attr("internalInteractionID");
-    linkLabels[0][index].childNodes[0].data = linkThatIsSelected.__data__.type;
+    GraphVisInteraction.linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    var index = d3.select(GraphVisInteraction.linkThatIsSelected).attr("internalInteractionID");
+    linkLabels[0][index].childNodes[0].data = GraphVisInteraction.linkThatIsSelected.__data__.type;
   }
 
   //TODO, make typeSelector text show nothing or null or whatever is deemed appropriate
   //textFieldShowingAttributes[0][0].value = "";
-  linkThatIsSelected=null;
+  GraphVisInteraction.linkThatIsSelected=null;
   onClickAddLinkState[0]=null;
-  if(selectedNode!=null) {
+  if(GraphVisInteraction.selectedNode!=null) {
     d3
-			.select(selectedNode)
+			.select(GraphVisInteraction.selectedNode)
 			.style("fill", "black")
 			;
   }
-	selectedNode=null;
+	GraphVisInteraction.selectedNode=null;
   printJSONOutput(); //Update
 };
