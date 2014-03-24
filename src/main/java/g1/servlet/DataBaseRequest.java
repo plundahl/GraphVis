@@ -27,7 +27,7 @@ public class DataBaseRequest extends HttpServlet
 	String query = request.getReader().readLine();
 	
 	//SEND query TO DB & GET resp
-	String resp = db.queryDB(query);
+	String resp = db.jsonQuery(query);
 
 	//Return resp as response 
 	PrintWriter pw = response.getWriter();
