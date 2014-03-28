@@ -1,6 +1,10 @@
 package g1.database;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 import com.hp.hpl.jena.query.Query;
 import com.hp.hpl.jena.query.QueryExecution;
@@ -204,7 +208,7 @@ public class RDFDatabase {
   //Returns all the possible 'edges' in the graph.
   public synchronized String getPredicates()
   {
-    String queryString =
+    String queryString = prefix +
       "SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))}";
     ResultSet results = runQuery(queryString);
 
@@ -216,7 +220,7 @@ public class RDFDatabase {
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("p");
       Resource test = soln.getResource("p");
-      //System.out.println(test.getNameSpace());
+      System.out.println(test.getNameSpace());
       System.out.println(test.getLocalName());
       resultStr += "\"" + lit.toString() + "\"";
 
@@ -227,26 +231,33 @@ public class RDFDatabase {
   }
 
 
-  //Returns all the Literals in the RDF-data as a JSON array.
+  //Returns all the Literals in the RDF-data as a JSON map.
   public synchronized String getLiterals()
   {
-    String queryString = 
-      "SELECT DISTINCT ?lit {?s ?p ?lit  filter(isLiteral(?lit)) }";
+    Map<String, List<String>> literals = new HashMap<String, List<String>>();
+    Gson gson = new Gson();
+    String queryString = prefix + 
+      "SELECT ?p ?lit {?s ?p ?lit  filter(isLiteral(?lit)) }";
     ResultSet results = runQuery(queryString);
 
-    String resultStr = "{\"literals\":[";
     for(int i = 0; results.hasNext(); i++)
     {
-      if (i>0)
-        resultStr += ",";
       QuerySolution soln = results.nextSolution() ;
+      RDFNode p = soln.get("p");
       RDFNode lit = soln.get("lit");
-      resultStr += "\"" + lit.toString() + "\"";
+      if(!literals.containsKey(p.toString()))
+      {
+        List<String> list = new ArrayList<String>();
+        literals.put(p.toString(),list);
+      }
+      List<String> list = literals.get(p.toString());
+      list.add(lit.toString());
 
     }
-    resultStr += "]}";
+    String json = "{ \"literals\" : " + gson.toJson(literals) + "}";
+    
     closeQuery();
-    return resultStr;
+    return json;
   }
 
   //Returns all rdf:type that is possible for every node to have in the graph.
