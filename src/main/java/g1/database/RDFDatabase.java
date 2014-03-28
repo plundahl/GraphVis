@@ -23,6 +23,9 @@ import com.google.gson.Gson;
 
 
 public class RDFDatabase {
+
+  private int TIMEOUT = 2000;
+
   private static Model model;
   private QueryExecution qexec;
   private String prefix = 
@@ -99,6 +102,8 @@ public class RDFDatabase {
    */
   public String jsonToSPARQLResult(String jsonString)
   {
+    String result = "";
+    try{
     //Create the sparql-query
     Gson gson = new Gson();
     Graph queryGraph = gson.fromJson(jsonString, Graph.class);
@@ -116,9 +121,15 @@ public class RDFDatabase {
     //TODO: Choose a good format.
     //ResultSetFormatter.outputAsRDF(out, "RDFJSON", results);
     ResultSetFormatter.out(out, results, query);
-    String result = new String(out.toString());
+    result = new String(out.toString());
     //Close this query. 
     closeQuery();
+    }catch (QueryCancelledException e )
+    {
+      System.out.println("Timed out");
+      return "Query timed out";
+    }
+    System.out.println("Worked");
     return result;
   }
 
@@ -127,6 +138,8 @@ public class RDFDatabase {
   private Graph buildAnswer(ResultSet results, Graph queryGraph)
   {
     Graph result = new Graph();
+    //TODO If it's null it means the query timed out.
+    try{
     for ( ; results.hasNext() ; )
     {
       QuerySolution soln = results.nextSolution() ;
@@ -148,6 +161,10 @@ public class RDFDatabase {
         }
 
       }
+    }
+    }catch (QueryCancelledException e )
+    {
+      result = new Graph();
     }
     return result;
   }
@@ -190,12 +207,18 @@ public class RDFDatabase {
   //Used for running querys
   private ResultSet runQuery(String queryString)
   {
+    ResultSet results = null;
+    try{
     queryString = prefix + queryString;
     Query query = QueryFactory.create(queryString) ;
     qexec = QueryExecutionFactory.create(query, model) ;
-    ResultSet results;
+    qexec.setTimeout(TIMEOUT);
     //try {
     results = qexec.execSelect() ;
+    }catch (QueryCancelledException e)
+    {
+      results = null;
+    }
     return results;
     //} finally { qexec.close() ; }
   }
