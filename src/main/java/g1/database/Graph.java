@@ -13,6 +13,9 @@ public class Graph {
   transient private Map<String, Integer> linkMap = new HashMap<String, Integer>();
   transient private int nrOfNodes = 0;
 
+  public String sparqlQuery;
+  public String sparqlResult;
+
   Graph()
   {
   }

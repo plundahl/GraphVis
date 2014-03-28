@@ -22,17 +22,21 @@ public class RDFDatabase {
   private static Model model;
   private QueryExecution qexec;
   private String prefix = 
-      "PREFIX foo:<http://www.franz.com/lesmis#> " +
-      "PREFIX dc:<http://purl.org/dc/elements/1.1/>" +
-      "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>" +
-      "PREFIX rdfns:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>";
+    "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "+
+    "PREFIX owl: <http://www.w3.org/2002/07/owl#> "+
+    "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> "+
+    "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> "+
+    "PREFIX KS: <http://www.foi.se/2007/KSOne.owl#> ";
 
+
+  /*
+   * This is how you creat a database interface, inputFile should be the location of your .rdf file.
+   */
   public RDFDatabase(String inputFile)
   {        
     // create an empty model
     model = ModelFactory.createDefaultModel();
     model.setNsPrefixes(PrefixMapping.Standard);
-
 
     // use the FileManager to find the input file
     InputStream in = FileManager.get().open(inputFile);
@@ -44,79 +48,78 @@ public class RDFDatabase {
     model.read( in, "" );
 
     System.out.println("RDFCreated and Waiting");
-    System.out.println(">> THIS IS A TEST ENVIRONMENT, THE RESULTING GRAPH IS A STATIC GRAPH lesmis.rdf <<");
-    //System.out.println(getLiterals());
-    //System.out.println(getTypes());
   }
 
-  //Old function, use jsonQuery
-  public String queryDB(String queryString)
-  {
-    //Size of the graph that will be returned in the test-environment.
-    //Change here for diffrent size of graphs.
-    //Graph g = new Graph(100);
-    //queryString = g.toJson();
-    //System.out.println(queryString);
 
-    //if(true)
-    //return queryString;
-
-    System.out.println(queryString);
-    //System.out.println(jsonQuery(queryString));
-    if(true)
-      return jsonQuery(queryString);
-    /*Gson gson = new Gson();
-    Graph obj = gson.fromJson(queryString, Graph.class);
-
-    String json = gson.toJson(obj);
-    System.out.println(json);*/
-
-    queryString = 
-      "PREFIX foo:<http://www.franz.com/lesmis#> " +
-      "PREFIX dc:<http://purl.org/dc/elements/1.1/>" +
-      "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>" +
-      "PREFIX rdfns:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
-      "SELECT ?x ?y ?z WHERE {?x ?y ?z}";
-
-    Graph resGraph = new Graph();
-    Query query = QueryFactory.create(queryString) ;
-    QueryExecution qexec = QueryExecutionFactory.create(query, model) ;
-    try {
-      ResultSet results = qexec.execSelect() ;
-      for ( ; results.hasNext() ; )
-      {
-        QuerySolution soln = results.nextSolution() ;
-        RDFNode x = soln.get("x") ;
-        RDFNode y = soln.get("y") ;
-        RDFNode z = soln.get("z") ;
-        if (z.isURIResource())
-        {
-          //System.out.println(x.toString() + y.toString() + z.toString());
-          resGraph.addTripplet(x.toString() , y.toString() , z.toString());
-        }
-      }
-
-      //return "";
-      return resGraph.toJson();
-    } finally { qexec.close() ; }
-  }
-
+  /*
+   * Takes a json-graph as input and returns a json-graph as output.
+   * The input will creat a sparql-query and the output graph will 
+   * be the sparql-result represented as a graph.
+   */
   public String jsonQuery(String jsonString)
+  {
+    //From json- to java-object.
+    Gson gson = new Gson();
+    Graph queryGraph = gson.fromJson(jsonString, Graph.class);
+    //From graph to sparql-query
+    String sparqlString = buildQuery(queryGraph);
+    //Run the query and create the resulting graph.
+    ResultSet results = runQuery(sparqlString);
+    Graph resultGraph = buildAnswer(results, queryGraph);
+    resultGraph.sparqlQuery = sparqlString;
+    closeQuery(); 
+    //System.out.println(jsonToSPARQLResult(jsonString));
+    resultGraph.sparqlResult = jsonToSPARQLResult(jsonString);
+
+    //Has to be called to close the query.
+    closeQuery(); 
+
+    String json = gson.toJson(resultGraph);
+    System.out.println("Nr of links in result: " + resultGraph.links.size());
+    return json;
+  }
+  
+  /*
+   * Take a json-graph and return the sparql-request.
+   */
+  public String jsonToSPARQL(String jsonString)
   {
     Gson gson = new Gson();
     Graph queryGraph = gson.fromJson(jsonString, Graph.class);
-    String test = buildQuery(queryGraph);
+    String sparqlString = buildQuery(queryGraph);
+    return sparqlString;
+  }
+  
+  /*
+   * Get the sparql-result as text not as a graph.
+   */
+  public String jsonToSPARQLResult(String jsonString)
+  {
+    //Create the sparql-query
+    Gson gson = new Gson();
+    Graph queryGraph = gson.fromJson(jsonString, Graph.class);
+    String sparqlString = buildQuery(queryGraph);
 
-    ResultSet results = runQuery(test);
-    Graph resultGraph = buildAnswer(results, queryGraph);
+    sparqlString = prefix + sparqlString;
 
+    Query query = QueryFactory.create(sparqlString) ;
+
+    //Run the query
+    ResultSet results = runQuery(sparqlString);
+
+    //Output the result to a string.
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    //TODO: Choose a good format.
+    //ResultSetFormatter.outputAsRDF(out, "RDFJSON", results);
+    ResultSetFormatter.out(out, results, query);
+    String result = new String(out.toString());
+    //Close this query. 
     closeQuery();
-
-    String json = gson.toJson(resultGraph);
-    System.out.println(resultGraph.links.size());
-    return json;
+    return result;
   }
 
+
+  //Takes a resultset and turns it into a graph.
   private Graph buildAnswer(ResultSet results, Graph queryGraph)
   {
     Graph result = new Graph();
@@ -145,8 +148,12 @@ public class RDFDatabase {
     return result;
   }
 
+  //Takes a graph and builds the corresponding sparqleQuery
   private String buildQuery(Graph queryGraph)
   {
+
+    //TODO: Add literals, type, etc...
+
     String query = "SELECT ";
     for(int i = 0; i<queryGraph.nodes.size(); i++)
     {
@@ -162,7 +169,17 @@ public class RDFDatabase {
       Link l = queryGraph.links.get(i);
       query += "?n" + l.source + " ?l" + i + " ?n" + l.target + ". ";
     }
-    query += "}";
+
+
+    query += "FILTER ( ";
+    //"SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))}";
+    for(int i = 0; i<queryGraph.nodes.size(); i++)
+    {
+      if( i > 0)
+        query += " && ";
+      query += "!isLiteral(?n"+i+")";
+    }
+    query += " ) }";
     return query;
   }
 
@@ -199,7 +216,7 @@ public class RDFDatabase {
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("p");
       Resource test = soln.getResource("p");
-      System.out.println(test.getNameSpace());
+      //System.out.println(test.getNameSpace());
       System.out.println(test.getLocalName());
       resultStr += "\"" + lit.toString() + "\"";
 
@@ -231,6 +248,8 @@ public class RDFDatabase {
     closeQuery();
     return resultStr;
   }
+
+  //Returns all rdf:type that is possible for every node to have in the graph.
   public String getTypes()
   {
     String queryString =
@@ -245,8 +264,8 @@ public class RDFDatabase {
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("type");
       Resource test = soln.getResource("type");
-      System.out.println(test.getNameSpace());
-      System.out.println(test.getLocalName());
+      //System.out.println(test.getNameSpace());
+      //System.out.println(test.getLocalName());
       resultStr += "\"" + lit.toString() + "\"";
 
     }
@@ -255,3 +274,55 @@ public class RDFDatabase {
     return resultStr;
   }
 }
+
+
+
+
+
+
+
+
+
+  //Old function, use jsonQuery
+/*  public String queryDB(String queryString)
+  {
+    //Size of the graph that will be returned in the test-environment.
+    //Change here for diffrent size of graphs.
+    //Graph g = new Graph(100);
+    //queryString = g.toJson();
+    //System.out.println(queryString);
+
+
+    //System.out.println(jsonQuery(queryString));
+    if(true)
+      return jsonQuery(queryString);
+
+    queryString = 
+      "PREFIX foo:<http://www.franz.com/lesmis#> " +
+      "PREFIX dc:<http://purl.org/dc/elements/1.1/>" +
+      "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>" +
+      "PREFIX rdfns:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
+      "SELECT ?x ?y ?z WHERE {?x ?y ?z}";
+
+    Graph resGraph = new Graph();
+    Query query = QueryFactory.create(queryString) ;
+    QueryExecution qexec = QueryExecutionFactory.create(query, model) ;
+    try {
+      ResultSet results = qexec.execSelect() ;
+      for ( ; results.hasNext() ; )
+      {
+        QuerySolution soln = results.nextSolution() ;
+        RDFNode x = soln.get("x") ;
+        RDFNode y = soln.get("y") ;
+        RDFNode z = soln.get("z") ;
+        if (z.isURIResource())
+        {
+          //System.out.println(x.toString() + y.toString() + z.toString());
+          resGraph.addTripplet(x.toString() , y.toString() , z.toString());
+        }
+      }
+
+      //return "";
+      return resGraph.toJson();
+    } finally { qexec.close() ; }
+  }*/
