@@ -79,7 +79,10 @@ public class RDFDatabase {
     resultGraph.sparqlResult = jsonToSPARQLResult(jsonString);
 
     //Has to be called to close the query.
-    closeQuery(); 
+    closeQuery();
+
+   //Set the types in the graph
+    setTypes(resultGraph); 
 
     String json = gson.toJson(resultGraph);
     System.out.println("Nr of links in result: " + resultGraph.links.size());
@@ -297,7 +300,7 @@ public class RDFDatabase {
         resultStr += ",";
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("type");
-      Resource test = soln.getResource("type");
+      //Resource test = soln.getResource("type");
       //System.out.println(test.getNameSpace());
       //System.out.println(test.getLocalName());
       resultStr += "\"" + lit.toString() + "\"";
@@ -306,6 +309,23 @@ public class RDFDatabase {
     resultStr += "]}";
     closeQuery();
     return resultStr;
+  }
+  
+  //Sets the types for all nodes in the graph
+  private void setTypes(Graph g)
+  {
+    String queryString =
+      "SELECT ?node ?type { ?node a ?type }";
+    ResultSet results = runQuery(queryString);
+
+    for(int i = 0; results.hasNext(); i++)
+    {
+      QuerySolution soln = results.nextSolution() ;
+      RDFNode lit = soln.get("type");
+      RDFNode node = soln.get("node");
+      g.setType(node.toString(),lit.toString());
+    }
+    closeQuery();
   }
 }
 
