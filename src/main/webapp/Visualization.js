@@ -13,6 +13,7 @@ var filteredNodes;
 var nodeGroup = [];
 var nodes;
 var edges;
+var graph;
 
 
 /*
@@ -27,9 +28,9 @@ function updateVisualization( returnedObject ) {
   // create a graph
   var container = document.getElementById('mygraph');
 
-	var nodes = new vis.DataSet();
+	nodes = new vis.DataSet();
 	nodes.add(node);
-	var edges = new vis.DataSet();
+	edges = new vis.DataSet();
 	edges.add(edge);
 
 	filteredNodes = new vis.DataSet();

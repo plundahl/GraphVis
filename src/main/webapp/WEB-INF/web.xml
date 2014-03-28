@@ -26,11 +26,21 @@
   
   <servlet>
     <servlet-name>DataBaseRequestLiterals</servlet-name>
-    <servlet-class>g1.servlet.DataBaseRequestPredicates</servlet-class>
+    <servlet-class>g1.servlet.DataBaseRequestLiterals</servlet-class>
     <load-on-startup>1</load-on-startup> 
   </servlet>
   <servlet-mapping>
     <servlet-name>DataBaseRequestLiterals</servlet-name>
     <url-pattern>/db-literals/*</url-pattern>
+  </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>DataBaseRequestTypes</servlet-name>
+    <servlet-class>g1.servlet.DataBaseRequestTypes</servlet-class>
+    <load-on-startup>1</load-on-startup> 
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DataBaseRequestTypes</servlet-name>
+    <url-pattern>/db-types/*</url-pattern>
   </servlet-mapping>
 </web-app>

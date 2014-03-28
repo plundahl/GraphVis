@@ -56,7 +56,7 @@ public class RDFDatabase {
    * The input will creat a sparql-query and the output graph will 
    * be the sparql-result represented as a graph.
    */
-  public String jsonQuery(String jsonString)
+  public synchronized String jsonQuery(String jsonString)
   {
     //From json- to java-object.
     Gson gson = new Gson();
@@ -202,7 +202,7 @@ public class RDFDatabase {
   }
 
   //Returns all the possible 'edges' in the graph.
-  public String getPredicates()
+  public synchronized String getPredicates()
   {
     String queryString =
       "SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))}";
@@ -228,7 +228,7 @@ public class RDFDatabase {
 
 
   //Returns all the Literals in the RDF-data as a JSON array.
-  public String getLiterals()
+  public synchronized String getLiterals()
   {
     String queryString = 
       "SELECT DISTINCT ?lit {?s ?p ?lit  filter(isLiteral(?lit)) }";
@@ -250,7 +250,7 @@ public class RDFDatabase {
   }
 
   //Returns all rdf:type that is possible for every node to have in the graph.
-  public String getTypes()
+  public synchronized String getTypes()
   {
     String queryString =
       "SELECT distinct ?type { ?s a ?type }";

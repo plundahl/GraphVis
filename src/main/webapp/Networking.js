@@ -68,7 +68,7 @@ function printJSONOutput () {
        var keys = _.keys(nodesInteraction[iterator]);
        textToTextField += '{';
        for(var key = 0; key < keys.length; key++){
-         if(!_.contains(d3NodeKeyValues, keys[key])) {
+         if(!_.contains(GraphVisInteraction.d3NodeKeyValues, keys[key])) {
            textToTextField += '"'+keys[key]+'":"'+nodesInteraction[iterator][keys[key]]+'",';
          }
        }
@@ -85,7 +85,7 @@ function printJSONOutput () {
     var keys = _.keys(links[iterator]);
     textToTextField += '{';
     for(var key = 0; key < keys.length; key++) {
-      if(!_.contains(d3NodeKeyValues, keys[key])) {
+      if(!_.contains(GraphVisInteraction.d3NodeKeyValues, keys[key])) {
         textToTextField += '"'+keys[key]+'":"'+links[iterator][keys[key]]+'",';
       }
     }
@@ -154,15 +154,19 @@ function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
 }
 
 function getPredicatesForInteraction( responseObject ) {
+  //console.log("getPredicatesForInteraction");
   if(responseObject==null) {
     requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction)
   } else {
-    console.log(responseObject);
-    updatePredicatesForInteraction(responseObject.edgetypes);
+    GraphVisInteraction.availablePredicates = responseObject.edgetypes;
+    console.log("Available predicates "+GraphVisInteraction.availablePredicates);
+    //console.log(GraphVisInteraction.availablePredicates);
   }
 }
 
+/*
 function updatePredicatesForInteraction( types ) {
+
   var selector = document.getElementById("selectionOfType");
   if(types.length>0) {
     selectorInnerHTML = "<select id='typeSelector'>";
@@ -178,11 +182,36 @@ function updatePredicatesForInteraction( types ) {
     //TODO
   }
 }
-
-function getLiteralsForInteraction() {
-
+*/
+function getTypesForInteraction( responseObject ) {
+  //console.log("getTypesForInteraction");
+  if(responseObject==null) {
+    requestFromDatabaseWithPrefix("db-types", null, getTypesForInteraction)
+  } else {
+    GraphVisInteraction.availableTypes = responseObject.types;
+    console.log("Available types for interaction " + GraphVisInteraction.availableTypes);
+    //GraphVisInteraction.updateSelectorWithTypes();
+    //console.log(GraphVisInteraction.availableTypes);
+  }
 }
 
-function updateLiteralsForInteraction() {
-
+function getLiteralsForInteraction( responseObject ) {
+  //console.log("getLiteralsForInteraction");
+  if(responseObject==null) {
+    requestFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction)
+  } else {
+    //GraphVisInteraction.availableLiterals = responseObject.literals;
+    /*
+    TEST LITERALS
+    */
+    var testString = '{"literals":{'
+      +'"Jasmin":["Server","Communication"],'
+      +'"Johan":["Visualization"],'
+      +'"Jonatan":["Interaction"],'
+      +'"Petter":["Jena","Conversion to SPARQL"]}}';
+    GraphVisInteraction.availableLiterals = JSON.parse(testString).literals;
+    console.log(GraphVisInteraction.availableLiterals);
+    console.log("Available literals for interaction " + GraphVisInteraction.availableLiterals);
+    //console.log(availableLiterals);
+  }
 }
