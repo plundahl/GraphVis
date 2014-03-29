@@ -5,8 +5,6 @@ Static variables
 
 var GraphVisInteraction = new Object();
 
-GraphVisInteraction.selectorIterator;
-
 GraphVisInteraction.width = 1000;
 GraphVisInteraction.height = 300;
 GraphVisInteraction.anchorAttributes = ["x", "y", "fixed", "labels", "node"];
@@ -192,15 +190,12 @@ var updateNode = function() {
 }
 
 function onClickInteractiveLink (datum) {
-  console.log("A link was clicked");
+  //console.log("A link was clicked");
   if(GraphVisInteraction.linksAreSelectabel) {
     deselectAllInteraction();
     GraphVisInteraction.linkThatIsSelected = this;
-
-    //setSelectTypeToValue(this.__data__.type);
-
+    d3.select(this).attr("class", "linkSelected");
     GraphVisInteraction.updateSelectorWithPredicates( datum.type );
-
     d3.event.stopPropagation();
   }
 }
@@ -310,31 +305,40 @@ function restart() {
   linkLabels = linkLabels.data(links);
 
   link
-    .exit()
-    .remove()
-    ;
+  .exit()
+  .remove()
+  ;
 
   linkLabels
-    .exit()
-    .remove()
-    ;
+  .exit()
+  .remove()
+  ;
 
 	link
-		.enter()
-		.insert("path", ".node")
-		.attr("class", "link")
-		.attr("marker-end", "url(#end)")
-    .attr("id", function(d,i) {return 'linkpath'+i;})
+  .enter()
+  .insert("path", ".node")
+  .attr("class", "link")
+  .attr("marker-end", "url(#end)")
+  .attr("id", function(d,i) {return 'linkpath'+i;})
   .attr("internalInteractionID", function(d,i) {return i;})
-    .on("click", onClickInteractiveLink)
-    .on("dblclick", function() {d3.event.stopPropagation}) //Double clicking on a link should not create a new node
-		;
+  //.attr("fill", "none")
+  //.attr("stroke", "#00CC66")
+  //.attr("stroke-width", "3")
+  .on("click", onClickInteractiveLink)
+  .on("dblclick", function() {d3.event.stopPropagation}) //Double clicking on a link should not create a new node
+  .on("mouseover", function() {d3.select(this).attr("class", "linkHovered");})
+  .on("mouseout", function() {
+    if(GraphVisInteraction.linkThatIsSelected!=null) return;
+    d3.select(this).attr("class", "link");
+  })
+  ;
 
   linkLabels
     .enter()
     .append("text")
     .attr("class", "unselectableTextLabel")
     .attr("fill", "YELLOW")
+    .on("click", function() {}) //To make clicks "pass-through" to nodes and links
     /*
     Serves no purpose to set x and/or y outside of tick
     */
@@ -473,22 +477,16 @@ function deselectAllInteraction() {
 
   if(GraphVisInteraction.selectedNode!=null) {
     var selectedNode = GraphVisInteraction.selectedNode;
-    //GraphVisInteraction.selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
-    //selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
-
     GraphVisInteraction.updateNodeWithSelectedValues(selectedNode.__data__);
-
-    //GraphVisInteraction.selectedNode.__data__.type = selectionOfLiteralsOrPredicate.options[selectionOfLiteralsOrPredicate.selectedIndex].text;
-
     var index = d3.select(GraphVisInteraction.selectedNode).attr("internalInteractionID");
     nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
   }
   if(GraphVisInteraction.linkThatIsSelected!=null) {
-    GraphVisInteraction.linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
-    //GraphVisInteraction.linkThatIsSelected.__data__.type = selectionOfLiteralsOrPredicate.options[selectionOfLiteralsOrPredicate.selectedIndex].text;
-
+    var predicateSelector = document.getElementById("literalOrPredicateSelector");
+    GraphVisInteraction.linkThatIsSelected.__data__.type = predicateSelector.options[predicateSelector.selectedIndex].text;
     var index = d3.select(GraphVisInteraction.linkThatIsSelected).attr("internalInteractionID");
     linkLabels[0][index].childNodes[0].data = GraphVisInteraction.linkThatIsSelected.__data__.type;
+    d3.select(GraphVisInteraction.linkThatIsSelected).attr("class", "link")
   }
 
   //TODO, make typeSelector text show nothing or null or whatever is deemed appropriate
