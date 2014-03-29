@@ -158,9 +158,10 @@ function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
 
 function getPredicatesForInteraction( responseObject ) {
   //console.log("getPredicatesForInteraction");
-  if(responseObject===null) {
+  if(responseObject===undefined) {
     requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction);
   } else {
+    console.log(responseObject);
     GraphVisInteraction.availablePredicates = responseObject.edgetypes;
     console.log("Available predicates "+GraphVisInteraction.availablePredicates);
     //console.log(GraphVisInteraction.availablePredicates);
@@ -169,7 +170,7 @@ function getPredicatesForInteraction( responseObject ) {
 
 function getTypesForInteraction( responseObject ) {
   //console.log("getTypesForInteraction");
-  if(responseObject===null) {
+  if(responseObject===undefined) {
     requestFromDatabaseWithPrefix("db-types", null, getTypesForInteraction);
   } else {
     GraphVisInteraction.availableTypes = responseObject.types;
@@ -181,7 +182,7 @@ function getTypesForInteraction( responseObject ) {
 
 function getLiteralsForInteraction( responseObject ) {
   //console.log("getLiteralsForInteraction");
-  if(responseObject===null) {
+  if(responseObject===undefined) {
     requestFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction);
   } else {
     GraphVisInteraction.availableLiterals = responseObject.literals;
