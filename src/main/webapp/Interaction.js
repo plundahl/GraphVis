@@ -4,10 +4,13 @@ Static variables
 */
 
 var GraphVisInteraction = new Object();
+
+GraphVisInteraction.selectorIterator;
+
 GraphVisInteraction.width = 1000;
 GraphVisInteraction.height = 300;
-GraphVisInteraction.anchorAttributes = ["x", "y","fixed","labels","node"];
-GraphVisInteraction.d3NodeKeyValues = ["x","y","source","target","index","py","px","weight"]; //D3js values that should be ignored
+GraphVisInteraction.anchorAttributes = ["x", "y", "fixed", "labels", "node"];
+GraphVisInteraction.d3NodeKeyValues = ["x", "y", "source", "target", "index", "py", "px", "weight", "literals"]; //D3js values that should be ignored, note literals is not D3 and this variable should be renamed at appropriate opportunity.
 
 GraphVisInteraction.availableTypes = null;
 GraphVisInteraction.availablePredicates = null;
@@ -147,7 +150,7 @@ function onClickAddNode() {
 	//The if statement is to prevent non-char values.
 	if(nodesInteraction.length<=25) {
 		var point = d3.mouse(this),
-        node = {x: point[0], y: point[1], type:"?"},
+        node = {x: point[0], y: point[1], type:"?", literals:{}},
 			n = nodesInteraction.push(node);
 
 
@@ -222,7 +225,8 @@ function onClickAddLink(datum) {
 			.select(GraphVisInteraction.selectedNode)
 			.style("fill", "green")
 			;
-    GraphVisInteraction.updateSelectorWithLiterals(datum.type);
+    //GraphVisInteraction.updateSelectorWithLiterals(datum.type);
+    GraphVisInteraction.updateSelectorWithNodeSelectors(datum);
 	} else { //If a starting node has already been selected
 		if (onClickAddLinkState[0]!=datum) {
       links.push({source: onClickAddLinkState[0], target: datum, type:"?"});
@@ -285,6 +289,7 @@ function onDragEnd (datum) {
 }
 
 
+/*
 function setSelectTypeToValue( value ) {
   var typeSelector = document.getElementById("typeSelector");
   for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
@@ -295,7 +300,7 @@ function setSelectTypeToValue( value ) {
     }
   }
 }
-
+*/
 
 /*
 Should be run each time something new is added to interaction
@@ -464,19 +469,23 @@ function deselectAllInteraction() {
   }
 
   var typeSelector = document.getElementById("typeSelector");
-  var selectionOfLiteralsOrPredicate = document.getElementById("literalOrPredicateSelector");
+  //var selectionOfLiteralsOrPredicate = document.getElementById("literalOrPredicateSelector");
 
   if(GraphVisInteraction.selectedNode!=null) {
+    var selectedNode = GraphVisInteraction.selectedNode;
     //GraphVisInteraction.selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    //selectedNode.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
 
-    GraphVisInteraction.selectedNode.__data__.type = selectionOfLiteralsOrPredicate.options[selectionOfLiteralsOrPredicate.selectedIndex].text;
+    GraphVisInteraction.updateNodeWithSelectedValues(selectedNode.__data__);
+
+    //GraphVisInteraction.selectedNode.__data__.type = selectionOfLiteralsOrPredicate.options[selectionOfLiteralsOrPredicate.selectedIndex].text;
 
     var index = d3.select(GraphVisInteraction.selectedNode).attr("internalInteractionID");
     nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
   }
   if(GraphVisInteraction.linkThatIsSelected!=null) {
-    //GraphVisInteraction.linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
-    GraphVisInteraction.linkThatIsSelected.__data__.type = selectionOfLiteralsOrPredicate.options[selectionOfLiteralsOrPredicate.selectedIndex].text;
+    GraphVisInteraction.linkThatIsSelected.__data__.type = typeSelector.options[typeSelector.selectedIndex].text;
+    //GraphVisInteraction.linkThatIsSelected.__data__.type = selectionOfLiteralsOrPredicate.options[selectionOfLiteralsOrPredicate.selectedIndex].text;
 
     var index = d3.select(GraphVisInteraction.linkThatIsSelected).attr("internalInteractionID");
     linkLabels[0][index].childNodes[0].data = GraphVisInteraction.linkThatIsSelected.__data__.type;
@@ -497,33 +506,120 @@ function deselectAllInteraction() {
   printJSONOutput(); //Update
 };
 
-GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral ) {
+
+
+
+
+/*
+This function should be called when the node options should appear.
+*/
+GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) {
+  console.log("Attempting to update with selectors for "+currentDatum);
   var selector = document.getElementById("selectionForInteractive");
-  var selectorInnerHTML = "Select literal: <select id='literalOrPredicateSelector' onchange='GraphVisInteraction.updateSelectorWithLiteralValues()'>";
-  selectorInnerHTML += "<option value='?'>?</option>"
-  var availableLiterals = _.keys(GraphVisInteraction.availableLiterals);
-  for(var iterator=0; iterator < availableLiterals.length; iterator++) {
-    selectorInnerHTML += "<option value='"+availableLiterals[iterator]+"'>"+
-    availableLiterals[iterator] + "</option>";
+  /*
+  Update the type selector.
+  */
+  var selectorInnerHTML = "<div id='typeSelectorDiv'>"+
+      "Select type: <select id='typeSelector'>"+
+      "<option value='?'>?</option>";
+  for(var iterator=0; iterator < GraphVisInteraction.availableTypes.length; iterator++) {
+    selectorInnerHTML += "<option value='"+GraphVisInteraction.availableTypes[iterator]+"'>"+
+      GraphVisInteraction.availableTypes[iterator] + "</option>";
   }
-  selectorInnerHTML += "</select><select id='literalValueSelector'><option value=''></selector>";
+  selectorInnerHTML += "</select></div>";
   selector.innerHTML = selectorInnerHTML;
+  /*
+  This is for updating the literals section.
+  It would benefit from using a different structure later.
+  */
 
-  var typeSelector = document.getElementById("literalOrPredicateSelector");
-
-  for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
-    var currentText = typeSelector.childNodes[i].text;
-    if(currentText==currentLiteral) {
-      typeSelector.selectedIndex = i;
-      break;
-    }
+  var literals = _.keys(currentDatum.literals);
+  console.log("Attempting to update with "+literals.length+" literal(s).");
+  for(var iterator=0; iterator<literals.length; iterator++) {
+    var key = literals[iterator];
+    GraphVisInteraction.updateSelectorWithLiterals( key, currentDatum.literals[key], iterator);
+    GraphVisInteraction.updateSelectorWithLiteralValues( String(iterator), key );
   }
-}
-GraphVisInteraction.updateSelectorWithLiteralValues = function() {
-  var outerSelector = document.getElementById("literalOrPredicateSelector");
-  var innerSelector = document.getElementById("literalValueSelector");
+  /*
+  Create an empty spot to add new literals...
+  */
+  GraphVisInteraction.updateSelectorWithLiterals( " ", " ", literals.length);
+  GraphVisInteraction.selectorIterator= literals.length+1;
 
-  var literal = outerSelector.options[outerSelector.selectedIndex].text;
+  //GraphVisInteraction.updateSelectorWithEmptyLiterals( literals.length ); //There is a need to be able to change not only the literals that are already decided
+  /*
+  I am unsure why these needs to be here to work ...
+  */
+  console.log(selector.childNodes);
+  console.log("Set selector for typeSelector");
+  GraphVisInteraction.setSelectorTo( document.getElementById("typeSelector"), currentDatum.type);
+  console.log("Set selectors for literals");
+
+  for(var iterator=literals.length-1; iterator>=0; iterator--) {
+    var key = literals[iterator];
+    GraphVisInteraction.setSelectorTo( document.getElementById("literalSelector"+String(iterator)), literals[iterator]);
+  }
+  console.log("Set selectors for literal values");
+
+  for(var iterator=literals.length-1; iterator>=0; iterator--) {
+    GraphVisInteraction.setSelectorTo( document.getElementById("literalValueSelector"+String(iterator)), currentDatum.literals[literals[iterator]]);
+  }
+  //GraphVisInteraction.setSelectorTo( document.getElementById("literalSelector0"), key);
+}
+
+GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral, literalValue, iterator ) {
+  var selector = document.getElementById("selectionForInteractive");
+  /*
+  Update the literal section.
+  */
+  if(iterator===undefined) {
+    iterator=GraphVisInteraction.selectorIterator;
+    GraphVisInteraction.selectorIterator++;
+  }
+  var selectorInnerHTML = "<div>";
+  selectorInnerHTML += "Select literal: <select id='literalSelector"+String(iterator)+"' onchange='GraphVisInteraction.updateSelectorWithLiteralValues("+String(iterator)+")'>";
+  selectorInnerHTML += "<option value=''></option>"
+  var availableLiterals = _.keys(GraphVisInteraction.availableLiterals);
+  for(var innerIterator=0; innerIterator < availableLiterals.length; innerIterator++) {
+    selectorInnerHTML += "<option value='"+availableLiterals[innerIterator]+"'>"+
+    availableLiterals[innerIterator] + "</option>";
+  }
+  selectorInnerHTML += "</select><select id='literalValueSelector"+String(iterator)+"' ><option value=''></selector></div>";
+  selector.innerHTML += selectorInnerHTML;
+  //var literalSelector = document.getElementById("literalSelector"+String(iterator));
+  //GraphVisInteraction.setSelectorTo( literalSelector, String(currentLiteral) );
+
+  //GraphVisInteraction.updateSelectorWithLiteralValues( iterator );
+
+  //console.log("literalSelector"+iterator);
+
+  /*
+  This section should probable be moved up in the call hierarchy.
+  */
+  //var literalValueSelector = document.getElementById("literalValueSelector"+String(iterator));
+  //GraphVisInteraction.setSelectorTo( literalValueSelector, literalValue );
+}
+
+/*
+Convenience function that might not be all that convenient.
+*/
+GraphVisInteraction.createSelectorWithIDAndValues = function( id, values ) {
+  var innerHTML = "<selector id='"+id+"'>";
+  for(var iterator = 0; iterator<values.length; iterator++) {
+    innerHTML += "<option value='"+values[iterator]+"'>"+values[iterator]+"</option>";
+  }
+  return innerHTML;
+}
+
+GraphVisInteraction.updateSelectorWithLiteralValues = function( iterator, literal ) {
+  var innerSelector = document.getElementById("literalValueSelector"+String(iterator));
+
+  console.log("literal="+literal);
+
+  if(literal===undefined) {
+    var outerSelector = document.getElementById("literalSelector"+String(iterator));
+    literal = outerSelector.options[outerSelector.selectedIndex].text;
+  }
   var innerElements = GraphVisInteraction.availableLiterals[literal];
 
   var innerHTML = "<option value=''></option>";
@@ -533,6 +629,22 @@ GraphVisInteraction.updateSelectorWithLiteralValues = function() {
       "</option>";
   }
   innerSelector.innerHTML = innerHTML;
+}
+
+GraphVisInteraction.setSelectorTo = function( selector, value ) {
+  var options = selector.childNodes;
+  //console.log(value);
+  selector.value=value;
+  /*for(var iterator = options.length-1; iterator>=0; iterator--) {
+    //console.log("\t"+options[iterator].text);
+    if( value==options[iterator].text ) {
+      //console.log(selector.selectedIndex);
+      selector.selectedIndex = iterator;
+      //console.log(selector.selectedIndex);
+      //console.log("Found at index "+iterator);
+      break;
+    }
+  }*/
 }
 
 GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) {
@@ -580,4 +692,20 @@ GraphVisInteraction.updateSelectorWithDeselect = function() {
   var selectorInnerHTML = "Select a node or link for options: <select id='literalOrPredicateSelector'><option value='none'>-</option></select>";
   selectionOfLiteralsOrPredicate.innerHTML = selectorInnerHTML;
   */
+}
+
+GraphVisInteraction.updateNodeWithSelectedValues = function ( datum ) {
+  var selectables = document.getElementById("selectionForInteractive").childNodes;
+  datum.literals = new Object();
+  for(var iterator = selectables.length-1; iterator>0; iterator--) {
+    var literalHTML = selectables[iterator].childNodes;
+    var potentialKey = literalHTML[1][literalHTML[1].selectedIndex].text;
+    var potentialValue = literalHTML[2][literalHTML[2].selectedIndex].text;
+    if(potentialKey.length!=0&&potentialValue.length!=0) { //If they have a value
+      datum.literals[potentialKey] = potentialValue;
+    }
+  }
+
+  var typeSelector = selectables[0].childNodes[1];
+  datum.type = typeSelector[typeSelector.selectedIndex].text;
 }
