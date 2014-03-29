@@ -339,10 +339,6 @@ function restart() {
   .append("text")
   .attr("class", "unselectableTextLabel")
   .attr("fill", "YELLOW")
-  .on("click", function() {}) //To make clicks "pass-through" to nodes and links, TODO this doesnt work as it should...
-  .on("mouseover", function() {})
-  .on("mouseout", function() {})
-  .on("dblclick", function() {})
     /*
     Serves no purpose to set x and/or y outside of tick
     */
@@ -381,10 +377,6 @@ function restart() {
   .append("text")
   .attr("class", "unselectableTextLabel")
   .attr("fill", "BLUE")
-  .on("click", function() {}) //To make clicks "pass-through" to nodes and links, TODO this doesnt work as it should...
-  .on("mouseover", function() {})
-  .on("mouseout", function() {})
-  .on("dblclick", function() {})
   .text(function(d) {return d.type;})
   ;
 
