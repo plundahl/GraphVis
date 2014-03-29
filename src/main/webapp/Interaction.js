@@ -13,6 +13,7 @@ GraphVisInteraction.d3NodeKeyValues = ["x", "y", "source", "target", "index", "p
 GraphVisInteraction.availableTypes = null;
 GraphVisInteraction.availablePredicates = null;
 GraphVisInteraction.availableLiterals = null;
+GraphVisInteraction.linkThatMouseIsOver = null;
 
 
 var developing = false;
@@ -326,24 +327,27 @@ function restart() {
   //.attr("stroke-width", "3")
   .on("click", onClickInteractiveLink)
   .on("dblclick", function() {d3.event.stopPropagation}) //Double clicking on a link should not create a new node
-  .on("mouseover", function() {d3.select(this).attr("class", "linkHovered");})
+  .on("mouseover", function() {d3.select(this).attr("class", "linkHovered");GraphVisInteraction.linkThatMouseIsOver=this;})
   .on("mouseout", function() {
-    if(GraphVisInteraction.linkThatIsSelected!=null) return;
+    if(GraphVisInteraction.linkThatIsSelected==GraphVisInteraction.linkThatMouseIsOver) return;
     d3.select(this).attr("class", "link");
   })
   ;
 
   linkLabels
-    .enter()
-    .append("text")
-    .attr("class", "unselectableTextLabel")
-    .attr("fill", "YELLOW")
-    .on("click", function() {}) //To make clicks "pass-through" to nodes and links
+  .enter()
+  .append("text")
+  .attr("class", "unselectableTextLabel")
+  .attr("fill", "YELLOW")
+  .on("click", function() {}) //To make clicks "pass-through" to nodes and links, TODO this doesnt work as it should...
+  .on("mouseover", function() {})
+  .on("mouseout", function() {})
+  .on("dblclick", function() {})
     /*
     Serves no purpose to set x and/or y outside of tick
     */
-    .text(function(d,i) {return String(d.type)})
-    ;
+  .text(function(d,i) {return String(d.type)})
+  ;
 
 	node = node.data(nodesInteraction);
 
@@ -373,12 +377,16 @@ function restart() {
 		;
 
   nodeLabels
-    .enter()
-    .append("text")
-    .attr("class", "unselectableTextLabel")
-    .attr("fill", "BLUE")
-    .text(function(d) {return d.type;})
-    ;
+  .enter()
+  .append("text")
+  .attr("class", "unselectableTextLabel")
+  .attr("fill", "BLUE")
+  .on("click", function() {}) //To make clicks "pass-through" to nodes and links, TODO this doesnt work as it should...
+  .on("mouseover", function() {})
+  .on("mouseout", function() {})
+  .on("dblclick", function() {})
+  .text(function(d) {return d.type;})
+  ;
 
   if(labelsAreEnabledThroughForceLayout) {
     anchorLink = anchorLink.data(labelLayoutLinks);
