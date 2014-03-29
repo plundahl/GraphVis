@@ -13,11 +13,14 @@ public class Graph {
   transient private Map<String, Integer> linkMap = new HashMap<String, Integer>();
   transient private int nrOfNodes = 0;
 
+  public String sparqlQuery;
+  public String sparqlResult;
+
   Graph()
   {
   }
 
-  void addTripplet(String first, String link, String last)
+  public void addTripplet(String first, String link, String last)
   {
     String linkKey = first+link+last;
     if(!linkMap.containsKey(linkKey))
@@ -31,15 +34,34 @@ public class Graph {
         addNode(last);
       }
       linkMap.put(linkKey,nrOfNodes);
-      addLink(nodeMap.get(first),nodeMap.get(last)); 
+      addLink(nodeMap.get(first),nodeMap.get(last), link); 
     }
   }
 
-  void addLink(int first, int last)
+  //Sets the type of a node, if that node exists
+  public void setType(String node, String type)
+  {
+    if(nodeMap.containsKey(node))
+    {
+      int nodePos = nodeMap.get(node);
+      nodes.get(nodePos).type = type;
+    }
+  }
+  
+  private void addLink(int first, int last)
   {
     Link l = new Link();
     l.source = first;
     l.target =last;
+    links.add(l);
+  }
+
+  private void addLink(int first, int last, String type)
+  {
+    Link l = new Link();
+    l.source = first;
+    l.target =last;
+    l.type = type;
     links.add(l);
   }
 
