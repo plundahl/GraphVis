@@ -24,7 +24,7 @@ This functions assumes that either all objects are for D3 or for vis.
 function verifyJSONForVisjsNodes( returnedObject ) {
   var returnedNodes = returnedObject.nodes;
 
-  if(returnedNodes[0]!=null&&(!_.has(returnedNodes[0], "id"))) {
+  if(returnedNodes[0]!==null&&(!_.has(returnedNodes[0], "id"))) {
     for(var iterator = 0; iterator<returnedNodes.length; iterator++) {
       returnedNodes[iterator].id = iterator;
     }
@@ -40,7 +40,7 @@ This functions assumes that either all objects are for D3 or for vis.
 function verifyJSONForVisjsEdges( returnedObject ) {
   var returnedEdges = returnedObject.links;
 
-  if(returnedEdges[0]!=null&&_.has(returnedEdges[0], "target")) {
+  if(returnedEdges[0]!==null&&_.has(returnedEdges[0], "target")) {
     for(var iterator = returnedEdges.length-1; iterator>=0; iterator--) {
       returnedEdges[iterator].from = returnedEdges[iterator].source;
       delete returnedEdges[iterator].source;
@@ -50,7 +50,6 @@ function verifyJSONForVisjsEdges( returnedObject ) {
   }
 
   for(var iterator = returnedEdges.length-1; iterator>=0; iterator--) {
-   delete returnedEdges[iterator]["id"];
    delete returnedEdges[iterator].id;
   }
 
@@ -89,8 +88,8 @@ function printJSONOutput () {
         textToTextField += '"'+keys[key]+'":"'+links[iterator][keys[key]]+'",';
       }
     }
-    textToTextField += '"source":'+links[iterator]["source"].index+','
-    +'"target":'+links[iterator]["target"].index+'},';
+    textToTextField += '"source":'+links[iterator]["source"].index+','+
+      '"target":'+links[iterator]["target"].index+'},';
   }
   if(textToTextField.charAt(textToTextField.length - 1)==',') {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
@@ -126,7 +125,7 @@ function sendToDatabase() {
         updateTextAreaWithTextResponse(responseObject.sparqlResult);
         updateTextAreaWithSPARQLQuery(responseObject.sparqlQuery);
 			}
-		}
+		};
 		xhr_object.send(requestToDatabase);
   } catch(e) {
 
@@ -153,14 +152,14 @@ function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
     var responseObject = JSON.parse(xhr_object.responseText);
 		callingFunction(responseObject);
 	  }
-	}
+  };
   xhr_object.send();
 }
 
 function getPredicatesForInteraction( responseObject ) {
   //console.log("getPredicatesForInteraction");
-  if(responseObject==null) {
-    requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction)
+  if(responseObject===null) {
+    requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction);
   } else {
     GraphVisInteraction.availablePredicates = responseObject.edgetypes;
     console.log("Available predicates "+GraphVisInteraction.availablePredicates);
@@ -170,8 +169,8 @@ function getPredicatesForInteraction( responseObject ) {
 
 function getTypesForInteraction( responseObject ) {
   //console.log("getTypesForInteraction");
-  if(responseObject==null) {
-    requestFromDatabaseWithPrefix("db-types", null, getTypesForInteraction)
+  if(responseObject===null) {
+    requestFromDatabaseWithPrefix("db-types", null, getTypesForInteraction);
   } else {
     GraphVisInteraction.availableTypes = responseObject.types;
     console.log("Available types for interaction " + GraphVisInteraction.availableTypes);
@@ -182,8 +181,8 @@ function getTypesForInteraction( responseObject ) {
 
 function getLiteralsForInteraction( responseObject ) {
   //console.log("getLiteralsForInteraction");
-  if(responseObject==null) {
-    requestFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction)
+  if(responseObject===null) {
+    requestFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction);
   } else {
     GraphVisInteraction.availableLiterals = responseObject.literals;
     /*

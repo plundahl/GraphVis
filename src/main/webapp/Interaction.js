@@ -506,13 +506,11 @@ function deselectAllInteraction() {
 
 
 
-
-
 /*
 This function should be called when the node options should appear.
 */
 GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) {
-  console.log("Attempting to update with selectors for "+currentDatum);
+  //console.log("Attempting to update with selectors for "+currentDatum);
   var selector = document.getElementById("selectionForInteractive");
   /*
   Update the type selector.
@@ -532,7 +530,7 @@ GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) 
   */
 
   var literals = _.keys(currentDatum.literals);
-  console.log("Attempting to update with "+literals.length+" literal(s).");
+  //console.log("Attempting to update with "+literals.length+" literal(s).");
   for(var iterator=0; iterator<literals.length; iterator++) {
     var key = literals[iterator];
     GraphVisInteraction.updateSelectorWithLiterals( key, currentDatum.literals[key], iterator);
@@ -548,16 +546,12 @@ GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) 
   /*
   I am unsure why these needs to be here to work ...
   */
-  console.log(selector.childNodes);
-  console.log("Set selector for typeSelector");
   GraphVisInteraction.setSelectorTo( document.getElementById("typeSelector"), currentDatum.type);
-  console.log("Set selectors for literals");
 
   for(var iterator=literals.length-1; iterator>=0; iterator--) {
     var key = literals[iterator];
     GraphVisInteraction.setSelectorTo( document.getElementById("literalSelector"+String(iterator)), literals[iterator]);
   }
-  console.log("Set selectors for literal values");
 
   for(var iterator=literals.length-1; iterator>=0; iterator--) {
     GraphVisInteraction.setSelectorTo( document.getElementById("literalValueSelector"+String(iterator)), currentDatum.literals[literals[iterator]]);
@@ -611,9 +605,6 @@ GraphVisInteraction.createSelectorWithIDAndValues = function( id, values ) {
 
 GraphVisInteraction.updateSelectorWithLiteralValues = function( iterator, literal ) {
   var innerSelector = document.getElementById("literalValueSelector"+String(iterator));
-
-  console.log("literal="+literal);
-
   if(literal===undefined) {
     var outerSelector = document.getElementById("literalSelector"+String(iterator));
     literal = outerSelector.options[outerSelector.selectedIndex].text;
@@ -630,8 +621,7 @@ GraphVisInteraction.updateSelectorWithLiteralValues = function( iterator, litera
 }
 
 GraphVisInteraction.setSelectorTo = function( selector, value ) {
-  var options = selector.childNodes;
-  //console.log(value);
+  //var options = selector.childNodes;
   selector.value=value;
   /*for(var iterator = options.length-1; iterator>=0; iterator--) {
     //console.log("\t"+options[iterator].text);
@@ -666,20 +656,6 @@ GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) 
     }
   }
 }
-
-/*
-GraphVisInteraction.updateSelectorWithTypes = function() {
-  var selector = document.getElementById("selectionOfType");
-  var selectorInnerHTML = "Select type: <select id='typeSelector'>";
-  selectorInnerHTML += "<option value='?'>?</option>"
-  for(var iterator=0; iterator < GraphVisInteraction.availableTypes.length; iterator++) {
-    selectorInnerHTML += "<option value='"+GraphVisInteraction.availableTypes[iterator]+"'>"+
-      GraphVisInteraction.availableTypes[iterator] + "</option>";
-  }
-  selectorInnerHTML += "</select>"
-  selector.innerHTML = selectorInnerHTML;
-}
-*/
 
 GraphVisInteraction.updateSelectorWithDeselect = function() {
   var selectionForInteractive = document.getElementById("selectionForInteractive");
