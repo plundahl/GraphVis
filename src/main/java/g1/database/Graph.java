@@ -67,30 +67,10 @@ public class Graph {
 
   void addNode(String tmp)
   {
-    Node n = new Node();
+    Node n = new Node(tmp);
     nodes.add(n);
     nodeMap.put(tmp,nrOfNodes);
     nrOfNodes++;
-  }
-
-  //TODO
-  //This is used for testing graph outputs.
-  //It creates a random graph of size test.
-  Graph(int test)
-  {
-
-    for(int i = 0; i < test; i++)
-    {
-      Node n = new Node();
-      nodes.add(n);
-      for(int j = 0; j<3; j++)
-      {
-        Link l = new Link();
-        l.source = (int)(Math.random()*test);
-        l.target =(int)(Math.random()*test);
-        links.add(l);
-      }
-    }
   }
 
   //Function for converting the graph to JSON output.

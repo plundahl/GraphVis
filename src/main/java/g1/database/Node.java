@@ -5,8 +5,15 @@ import java.util.List;
 
 public class Node {
   public String type;
+  public String value;
 
-  Node()
+  Node(String tmp)
   {
+    value = tmp;
+  }
+
+  public boolean hasType()
+  {
+    return !type.equals("?");
   }
 }
