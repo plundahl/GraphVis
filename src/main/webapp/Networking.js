@@ -27,6 +27,8 @@ function verifyJSONForVisjsNodes( returnedObject ) {
   if(returnedNodes[0]!==null&&(!_.has(returnedNodes[0], "id"))) {
     for(var iterator = 0; iterator<returnedNodes.length; iterator++) {
       returnedNodes[iterator].id = iterator;
+	  //returnedNodes[iterator].label = returnedNodes[iterator].type; This will write out the nodes label.
+	  returnedNodes[iterator].title = returnedNodes[iterator].type;
     }
   }
 
@@ -42,7 +44,8 @@ function verifyJSONForVisjsEdges( returnedObject ) {
 
   if(returnedEdges[0]!==null&&_.has(returnedEdges[0], "target")) {
     for(var iterator = returnedEdges.length-1; iterator>=0; iterator--) {
-      returnedEdges[iterator].from = returnedEdges[iterator].source;
+      returnedEdges[iterator].label = returnedEdges[iterator].type;	//This sets the label for displaying on the edges in the graph.
+	  returnedEdges[iterator].from = returnedEdges[iterator].source;
       delete returnedEdges[iterator].source;
       returnedEdges[iterator].to = returnedEdges[iterator].target;
       delete returnedEdges[iterator].target;
