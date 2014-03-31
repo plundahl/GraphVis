@@ -20,6 +20,7 @@ var graph;
 Updates the visualization once new information has arrived.
 */
 function updateVisualization( returnedObject ) {
+
   var node = verifyJSONForVisjsNodes( returnedObject );
   //console.log(node);
   var edge = verifyJSONForVisjsEdges( returnedObject );
@@ -39,8 +40,8 @@ function updateVisualization( returnedObject ) {
     edges: edges
   };
   options = {
-	nodes: {shape:'circle', label : true, title : true}, 
-	edges:{style:'arrow', length : 80, label : true, title : true},
+	nodes: {}, //label : true, title : true
+	edges:{style:'arrow'}, //length : 80 , label : true, title : true
     clustering: {enabled: false},
     stabilize: false,
     physics:
@@ -69,7 +70,7 @@ function removeNodes(d){
 
 /* Skriver ut namnet på nod. */
 function click(d){
-	var nameOfNode = nodes.get(d.nodes[0]).type;
+	var nameOfNode = nodes.get(d.nodes[0]).label;
 	console.log(nameOfNode);
 }
 

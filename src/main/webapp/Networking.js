@@ -23,12 +23,12 @@ This functions assumes that either all objects are for D3 or for vis.
 */
 function verifyJSONForVisjsNodes( returnedObject ) {
   var returnedNodes = returnedObject.nodes;
-
   if(returnedNodes[0]!==null&&(!_.has(returnedNodes[0], "id"))) {
     for(var iterator = 0; iterator<returnedNodes.length; iterator++) {
       returnedNodes[iterator].id = iterator;
-	  //returnedNodes[iterator].label = returnedNodes[iterator].type; This will write out the nodes label.
+	  returnedNodes[iterator].label = returnedNodes[iterator].value; //This will write out the nodes label.
 	  returnedNodes[iterator].title = returnedNodes[iterator].type;
+	  returnedNodes[iterator].group = returnedNodes[iterator].type;
     }
   }
 
@@ -124,6 +124,7 @@ function sendToDatabase() {
 			if (xhr_object.readyState == 4 && xhr_object.status == 200) {
         var responseObject = JSON.parse(xhr_object.responseText);
         console.log(responseObject);
+				
 				updateVisualization(responseObject);
         updateTextAreaWithTextResponse(responseObject.sparqlResult);
         updateTextAreaWithSPARQLQuery(responseObject.sparqlQuery);
