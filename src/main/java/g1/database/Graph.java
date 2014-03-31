@@ -44,7 +44,7 @@ public class Graph {
     if(nodeMap.containsKey(node))
     {
       int nodePos = nodeMap.get(node);
-      nodes.get(nodePos).type = node; //TODO type;
+      nodes.get(nodePos).type = type;
     }
   }
   
