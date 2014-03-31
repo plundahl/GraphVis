@@ -264,7 +264,7 @@ public class RDFDatabase {
   public synchronized String getPredicates()
   {
     String queryString = prefix +
-      "SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))}";
+      "SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))} ORDER BY ?p";
     ResultSet results = runQuery(queryString);
 
     String resultStr = "{\"edgetypes\":[";
@@ -319,7 +319,7 @@ public class RDFDatabase {
   public synchronized String getTypes()
   {
     String queryString =
-      "SELECT distinct ?type { ?s a ?type }";
+      "SELECT distinct ?type { ?s a ?type } ORDER BY ?type";
     ResultSet results = runQuery(queryString);
 
     String resultStr = "{\"types\":[";
