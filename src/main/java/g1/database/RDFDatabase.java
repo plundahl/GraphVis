@@ -159,9 +159,15 @@ public class RDFDatabase {
           //TODO: only allow edges between diffrent nodes
           //if(! s.toString().equals(o.toString()))
           if(l.hasType())
-            result.addTripplet(s.toString() , l.type , o.toString());
+            result.addTripplet(s.asResource().getLocalName() , l.type , 
+                o.asResource().getLocalName());
+            //TODO: Make better use of prefixes.
+            //result.addTripplet(s.toString() , l.type , o.toString());
           else  
-            result.addTripplet(s.toString() , p.toString() , o.toString());
+            result.addTripplet(s.asResource().getLocalName() , 
+                p.asResource().getLocalName(), 
+                o.asResource().getLocalName());
+            //result.addTripplet(s.toString() , p.toString() , o.toString());
         }
         else
         {
@@ -198,6 +204,13 @@ public class RDFDatabase {
         query += "?l"+i+" ";
     }
     query += "WHERE { ";
+
+    for(int i = 0; i<queryGraph.nodes.size(); i++)
+    {
+      Node n = queryGraph.nodes.get(i);
+      if(n.hasType())
+        query += "?n" + i + " a <" + n.type + "> . ";
+    }
     for(int i = 0; i<queryGraph.links.size(); i++)
     {
       Link l = queryGraph.links.get(i);
@@ -339,7 +352,9 @@ public class RDFDatabase {
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("type");
       RDFNode node = soln.get("node");
-      g.setType(node.toString(),lit.toString());
+      //TODO quick fix for easy to read output.
+      //g.setType(node.toString(),lit.toString());
+      g.setType(node.asResource().getLocalName(), lit.asResource().getLocalName());
     }
     closeQuery();
   }
