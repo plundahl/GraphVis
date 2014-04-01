@@ -20,6 +20,7 @@ var graph;
 Updates the visualization once new information has arrived.
 */
 function updateVisualization( returnedObject ) {
+
   var node = verifyJSONForVisjsNodes( returnedObject );
   //console.log(node);
   var edge = verifyJSONForVisjsEdges( returnedObject );
@@ -39,8 +40,8 @@ function updateVisualization( returnedObject ) {
     edges: edges
   };
   options = {
-    nodes: {shape:'circle'},
-    edges: {length : 80},
+	nodes: {}, //label : true, title : true
+	edges:{style:'arrow'}, //length : 80 , label : true, title : true
     clustering: {enabled: false},
     stabilize: false,
     physics:
@@ -51,7 +52,7 @@ function updateVisualization( returnedObject ) {
   graph = new vis.Graph(container, data, options);
 
   var selection = graph.getSelection();
-	graph.on('doubleClick', doubleClick); //Byt ut removeNodes till doubleClick för att testa gruppfiltrering
+	graph.on('doubleClick', removeNodes); //Byt ut removeNodes till doubleClick för att testa gruppfiltrering
   graph.on('click', click);
 
 }
@@ -69,7 +70,7 @@ function removeNodes(d){
 
 /* Skriver ut namnet på nod. */
 function click(d){
-	var nameOfNode = nodes.get(d.nodes[0]).labelHidden;
+	var nameOfNode = nodes.get(d.nodes[0]).label;
 	console.log(nameOfNode);
 }
 
@@ -77,7 +78,7 @@ function click(d){
 function doubleClick(d) {
 	var clickedNode = nodes.get(d.nodes[0]);
 	for(var i = 0; i<nodeGroup.length;i++){
-		if(clickedNode.group == nodeGroup[i]){
+		if(clickedNode.type == nodeGroup[i]){
 			console.log('funkar');
 			nodes.add(filteredNodes.get());
 			filteredNodes.clear();
@@ -86,21 +87,19 @@ function doubleClick(d) {
 			return;
 			}
 	}
-	console.log('nytt test');
 	var items = nodes.get({
 	  filter: function (item) {
-		if(item.labelHidden != clickedNode.labelHidden){ //Vill spara noden som klickades på
-		return item.group == nodes.get(d.nodes[0]).group;} //Kan såklart bytas mot annan egenskap.
+		if(item.id != clickedNode.id){ //Vill spara noden som klickades på
+		return item.type == nodes.get(d.nodes[0]).type;} //Kan såklart bytas mot annan egenskap.
 	}
 	});
 	//console.log('filtered items', items);
 	items = _.difference(items, clickedNode);
 	filteredNodes.add(items);
-	nodeGroup.push(clickedNode.group);
+	nodeGroup.push(clickedNode.type);
 	nodes.remove(items);
 	graph.redraw();
 }
-
 /* Används inte just nu.
 function implodeNodes(array,origin){
 	array = _.difference(array,origin); //Tar bort noden som klickades på.

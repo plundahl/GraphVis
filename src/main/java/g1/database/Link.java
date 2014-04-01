@@ -7,4 +7,9 @@ public class Link {
   public String type;
   public int source;
   public int target;
+  
+  public boolean hasType()
+  {
+    return !type.equals("?");
+  }
 }

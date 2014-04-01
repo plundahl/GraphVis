@@ -150,13 +150,24 @@ public class RDFDatabase {
       {
         Link l = queryGraph.links.get(i);
         RDFNode s = soln.get("n"+l.source) ;
-        RDFNode p = soln.get("l"+i) ;
+        RDFNode p = null;
+        if(!l.hasType())
+          p = soln.get("l"+i) ;
         RDFNode o = soln.get("n"+l.target) ;
         if (true || o.isURIResource())
         {
           //TODO: only allow edges between diffrent nodes
-          if(! s.toString().equals(o.toString()))
-            result.addTripplet(s.toString() , p.toString() , o.toString());
+          //if(! s.toString().equals(o.toString()))
+          if(l.hasType())
+            result.addTripplet(s.asResource().getLocalName() , l.type , 
+                o.asResource().getLocalName());
+            //TODO: Make better use of prefixes.
+            //result.addTripplet(s.toString() , l.type , o.toString());
+          else  
+            result.addTripplet(s.asResource().getLocalName() , 
+                p.asResource().getLocalName(), 
+                o.asResource().getLocalName());
+            //result.addTripplet(s.toString() , p.toString() , o.toString());
         }
         else
         {
@@ -179,24 +190,42 @@ public class RDFDatabase {
     //TODO: Add literals, type, etc...
 
     String query = "SELECT ";
+
+    //TODO: added to deal with empty querys
+    if(queryGraph.nodes.size() == 0)
+      query += "?empty ";
     for(int i = 0; i<queryGraph.nodes.size(); i++)
     {
       query += "?n"+i+" ";
     }
     for(int i = 0; i<queryGraph.links.size(); i++)
     {
-      query += "?l"+i+" ";
+      if(!queryGraph.links.get(i).hasType())
+        query += "?l"+i+" ";
     }
     query += "WHERE { ";
+
+    for(int i = 0; i<queryGraph.nodes.size(); i++)
+    {
+      Node n = queryGraph.nodes.get(i);
+      if(n.hasType())
+        query += "?n" + i + " a <" + n.type + "> . ";
+    }
     for(int i = 0; i<queryGraph.links.size(); i++)
     {
       Link l = queryGraph.links.get(i);
-      query += "?n" + l.source + " ?l" + i + " ?n" + l.target + ". ";
+      if(l.hasType())
+        query += "?n" + l.source + " <" + l.type +"> ?n" + l.target + ". ";
+      else
+        query += "?n" + l.source + " ?l" + i + " ?n" + l.target + ". ";
     }
 
 
     query += "FILTER ( ";
-    //"SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))}";
+    
+    //TODO: added to deal with empty querys
+    if(queryGraph.nodes.size() == 0)
+      query += "!isLiteral(?empty)";
     for(int i = 0; i<queryGraph.nodes.size(); i++)
     {
       if( i > 0)
@@ -235,7 +264,7 @@ public class RDFDatabase {
   public synchronized String getPredicates()
   {
     String queryString = prefix +
-      "SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))}";
+      "SELECT distinct ?p { ?s ?p ?o filter(!isLiteral(?o))} ORDER BY ?p";
     ResultSet results = runQuery(queryString);
 
     String resultStr = "{\"edgetypes\":[";
@@ -290,7 +319,7 @@ public class RDFDatabase {
   public synchronized String getTypes()
   {
     String queryString =
-      "SELECT distinct ?type { ?s a ?type }";
+      "SELECT distinct ?type { ?s a ?type } ORDER BY ?type";
     ResultSet results = runQuery(queryString);
 
     String resultStr = "{\"types\":[";
@@ -323,7 +352,9 @@ public class RDFDatabase {
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("type");
       RDFNode node = soln.get("node");
-      g.setType(node.toString(),lit.toString());
+      //TODO quick fix for easy to read output.
+      //g.setType(node.toString(),lit.toString());
+      g.setType(node.asResource().getLocalName(), lit.asResource().getLocalName());
     }
     closeQuery();
   }
