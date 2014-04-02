@@ -3,7 +3,7 @@
 Static variables
 */
 
-var GraphVisInteraction = new Object();
+var GraphVisInteraction = {};
 
 GraphVisInteraction.width = 1000;
 GraphVisInteraction.height = 300;
@@ -14,7 +14,6 @@ GraphVisInteraction.availableTypes = null;
 GraphVisInteraction.availablePredicates = null;
 GraphVisInteraction.availableLiterals = null;
 GraphVisInteraction.linkThatMouseIsOver = null;
-
 
 var developing = false;
 var labelsAreEnabledThroughForceLayout = false;
@@ -301,7 +300,7 @@ function setSelectTypeToValue( value ) {
 Should be run each time something new is added to interaction
 */
 function restart() {
-	link = link.data(links);
+	link = svg.selectAll(".link").data(links);
   linkLabels = linkLabels.data(links);
 
   link
@@ -544,6 +543,8 @@ GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) 
   GraphVisInteraction.updateSelectorWithLiterals( " ", " ", literals.length);
   GraphVisInteraction.selectorIterator= literals.length+1;
 
+  selector.innerHTML += "<button class='deleteButton' onClick='GraphVisInteraction.deleteSelectedNode()'>Delete</button>";
+
   //GraphVisInteraction.updateSelectorWithEmptyLiterals( literals.length ); //There is a need to be able to change not only the literals that are already decided
   /*
   I am unsure why these needs to be here to work ...
@@ -645,7 +646,7 @@ GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) 
     selectorInnerHTML += "<option value='"+GraphVisInteraction.availablePredicates[iterator]+"'>"+
       GraphVisInteraction.availablePredicates[iterator] + "</option>";
   }
-  selectorInnerHTML += "</select>";
+  selectorInnerHTML += "</select><div><button class='deleteButton' onClick='GraphVisInteraction.deleteSelectedLink()'>Delete</button></div>";
   selector.innerHTML = selectorInnerHTML;
 
   var typeSelector = document.getElementById("literalOrPredicateSelector");
@@ -658,6 +659,29 @@ GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) 
     }
   }
 };
+
+GraphVisInteraction.deleteSelectedNode = function() {
+  var node = GraphVisInteraction.selectedNode.__data__;
+  for(var iterator = links.length-1; iterator>=0; iterator--) {
+    var link = links[iterator];
+    console.log(link);
+    if(link.source===node||link.target===node) {
+      links.splice(iterator, 1);
+    }
+  }
+  nodesInteraction.splice(GraphVisInteraction.selectedNode.__data__.index, 1);
+  deselectAllInteraction();
+  restart();
+};
+
+GraphVisInteraction.deleteSelectedLink = function() {
+  var link = GraphVisInteraction.linkThatIsSelected.__data__;
+  console.log(link);
+  var index = _.indexOf(links, link);
+  links.splice(index, 1);
+  deselectAllInteraction();
+  restart();
+}
 
 GraphVisInteraction.updateSelectorWithDeselect = function() {
   var selectionForInteractive = document.getElementById("selectionForInteractive");
@@ -673,7 +697,7 @@ GraphVisInteraction.updateSelectorWithDeselect = function() {
 GraphVisInteraction.updateNodeWithSelectedValues = function ( datum ) {
   var selectables = document.getElementById("selectionForInteractive").childNodes;
   datum.literals = new Object();
-  for(var iterator = selectables.length-1; iterator>0; iterator--) {
+  for(var iterator = selectables.length-2; iterator>0; iterator--) {
     var literalHTML = selectables[iterator].childNodes;
     var potentialKey = literalHTML[1][literalHTML[1].selectedIndex].text;
     var potentialValue = literalHTML[2][literalHTML[2].selectedIndex].text;

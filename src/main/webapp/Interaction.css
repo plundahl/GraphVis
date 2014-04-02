@@ -29,3 +29,6 @@
   cursor: default;
   pointer-events: none;
 }
+.deleteButton {
+  background-color: red;
+}
