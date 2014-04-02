@@ -4,17 +4,17 @@
 .link {
 	    fill: none;
 	    stroke: #00CC66;
-      stroke-width: 3;
+      stroke-width: 5;
 }
 .linkSelected {
   fill: none;
   stroke: green;
-  stroke-width: 3;
+  stroke-width: 5;
 }
 .linkHovered {
   fill: none;
   stroke: green;
-  stroke-width: 3;
+  stroke-width: 5;
 }
 .background {
     	background-color: #909090;
