@@ -3,7 +3,7 @@
 Static variables
 */
 
-var GraphVisInteraction = new Object();
+var GraphVisInteraction = {};
 
 GraphVisInteraction.width = 1000;
 GraphVisInteraction.height = 300;
@@ -15,12 +15,9 @@ GraphVisInteraction.availablePredicates = null;
 GraphVisInteraction.availableLiterals = null;
 GraphVisInteraction.linkThatMouseIsOver = null;
 
-
 var developing = false;
 var labelsAreEnabledThroughForceLayout = false;
 
-var nodesAreSelectabel = true; //This currently does not work.
-var nodeSelected = null; //Reference to the node that has been selected
 var onClickAddLinkState = [null, null]; //This should be removed at some point
 GraphVisInteraction.linksAreSelectabel = true;
 GraphVisInteraction.linkThatIsSelected = null;
@@ -30,9 +27,7 @@ var nodeThatIsBeingDragged = null;
 var pathFromNodeToMouse = null;
 GraphVisInteraction.selectedNode = null;
 
-var defaultLinkColor = "black";
-
-var onSelectShowTextFieldAttribute = true; //Will show a small html textfield where name of attributes can be changed.
+var onSelectShowTextFieldAttribute = true;
 
 if(developing) {
   GraphVisInteraction.height=200;
@@ -70,7 +65,7 @@ if(labelsAreEnabledThroughForceLayout) {
   labelLayoutForce.start();
 }
 
-var force = d3
+GraphVisInteraction.force = d3
 	.layout
 	.force()
 	.size([GraphVisInteraction.width, GraphVisInteraction.height])
@@ -112,17 +107,17 @@ svg
 	.append("marker")
 	.attr("id", "end")
 	.attr("viewBox", "0 -5 10 10")
-	.attr("refX", 15)
-	.attr("refY", -1.5)
-	.attr("markerWidth", 6)
-	.attr("markerHeight", 6)
+	.attr("refX", 14.3)
+	.attr("refY", -0.5)
+	.attr("markerWidth", 4)
+	.attr("markerHeight", 3)
 	.attr("orient", "auto")
 	.append("path")
 	.attr("d", "M0, -5L10, 0L0,5")
 	;
 
-var nodesInteraction = force.nodes(),
-	links = force.links(),
+var nodesInteraction = GraphVisInteraction.force.nodes(),
+	links = GraphVisInteraction.force.links(),
   linkLabels = svg.selectAll(".linkLabels"),
 	node = svg.selectAll(".node"),
   nodeLabels = svg.selectAll(".nodeLabels"),
@@ -203,10 +198,23 @@ function onClickInteractiveLink (datum) {
 
 //See http://bl.ocks.org/mbostock/1153292
 function linkArc(d) {
-	var dx = d.target.x - d.source.x,
-		dy = d.target.y-d.source.y,
-		dr = Math.sqrt(dx * dx + dy*dy);
-	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 0,1 "+d.target.x+","+d.target.y;
+  var dx = d.target.x - d.source.x,
+      dy = d.target.y-d.source.y,
+      dr = Math.sqrt(dx * dx + dy*dy),
+      x = d.target.x,
+      y = d.target.y,
+      close = "",
+      large_arc_flag = 0,
+      large_sweep_flag = 1;
+  if(dr==0) {
+    x += 0.1;
+    close = " Z";
+    dr = 15;
+    large_arc_flag=1;
+    large_sweep_flag=0;
+  }
+
+	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 "+large_arc_flag+","+large_sweep_flag+" "+x+","+y+close;
 }
 
 function onClickAddLink(datum) {
@@ -224,7 +232,7 @@ function onClickAddLink(datum) {
     //GraphVisInteraction.updateSelectorWithLiterals(datum.type);
     GraphVisInteraction.updateSelectorWithNodeSelectors(datum);
 	} else { //If a starting node has already been selected
-		if (onClickAddLinkState[0]!=datum) {
+		//if (onClickAddLinkState[0]!=datum) {
       links.push({source: onClickAddLinkState[0], target: datum, type:"?"});
 			restart();
 			d3
@@ -234,7 +242,7 @@ function onClickAddLink(datum) {
 			GraphVisInteraction.selectedNode = null;
 			onClickAddLinkState[0]=null;
       deselectAllInteraction();
-		}
+		//}
 	}
   /*textFieldShowingAttributes[0][0]
     .value = datum.type
@@ -301,7 +309,7 @@ function setSelectTypeToValue( value ) {
 Should be run each time something new is added to interaction
 */
 function restart() {
-	link = link.data(links);
+	link = svg.selectAll(".link").data(links);
   linkLabels = linkLabels.data(links);
 
   link
@@ -321,9 +329,6 @@ function restart() {
   .attr("marker-end", "url(#end)")
   .attr("id", function(d,i) {return 'linkpath'+i;})
   .attr("internalInteractionID", function(d,i) {return i;})
-  //.attr("fill", "none")
-  //.attr("stroke", "#00CC66")
-  //.attr("stroke-width", "3")
   .on("click", onClickInteractiveLink)
   .on("dblclick", function() {d3.event.stopPropagation();}) //Double clicking on a link should not create a new node
   .on("mouseover", function() {
@@ -400,7 +405,7 @@ function restart() {
 
   printJSONOutput();
 
-	force.start();
+	GraphVisInteraction.force.start();
 }
 
 /*
@@ -544,6 +549,8 @@ GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) 
   GraphVisInteraction.updateSelectorWithLiterals( " ", " ", literals.length);
   GraphVisInteraction.selectorIterator= literals.length+1;
 
+  selector.innerHTML += "<button class='deleteButton' onClick='GraphVisInteraction.deleteSelectedNode()'>Delete</button>";
+
   //GraphVisInteraction.updateSelectorWithEmptyLiterals( literals.length ); //There is a need to be able to change not only the literals that are already decided
   /*
   I am unsure why these needs to be here to work ...
@@ -645,7 +652,7 @@ GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) 
     selectorInnerHTML += "<option value='"+GraphVisInteraction.availablePredicates[iterator]+"'>"+
       GraphVisInteraction.availablePredicates[iterator] + "</option>";
   }
-  selectorInnerHTML += "</select>";
+  selectorInnerHTML += "</select><div><button class='deleteButton' onClick='GraphVisInteraction.deleteSelectedLink()'>Delete</button></div>";
   selector.innerHTML = selectorInnerHTML;
 
   var typeSelector = document.getElementById("literalOrPredicateSelector");
@@ -658,6 +665,29 @@ GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) 
     }
   }
 };
+
+GraphVisInteraction.deleteSelectedNode = function() {
+  var node = GraphVisInteraction.selectedNode.__data__;
+  for(var iterator = links.length-1; iterator>=0; iterator--) {
+    var link = links[iterator];
+    console.log(link);
+    if(link.source===node||link.target===node) {
+      links.splice(iterator, 1);
+    }
+  }
+  nodesInteraction.splice(GraphVisInteraction.selectedNode.__data__.index, 1);
+  deselectAllInteraction();
+  restart();
+};
+
+GraphVisInteraction.deleteSelectedLink = function() {
+  var link = GraphVisInteraction.linkThatIsSelected.__data__;
+  console.log(link);
+  var index = _.indexOf(links, link);
+  links.splice(index, 1);
+  deselectAllInteraction();
+  restart();
+}
 
 GraphVisInteraction.updateSelectorWithDeselect = function() {
   var selectionForInteractive = document.getElementById("selectionForInteractive");
@@ -673,7 +703,7 @@ GraphVisInteraction.updateSelectorWithDeselect = function() {
 GraphVisInteraction.updateNodeWithSelectedValues = function ( datum ) {
   var selectables = document.getElementById("selectionForInteractive").childNodes;
   datum.literals = new Object();
-  for(var iterator = selectables.length-1; iterator>0; iterator--) {
+  for(var iterator = selectables.length-2; iterator>0; iterator--) {
     var literalHTML = selectables[iterator].childNodes;
     var potentialKey = literalHTML[1][literalHTML[1].selectedIndex].text;
     var potentialValue = literalHTML[2][literalHTML[2].selectedIndex].text;
