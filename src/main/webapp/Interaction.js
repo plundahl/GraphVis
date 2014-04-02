@@ -18,8 +18,6 @@ GraphVisInteraction.linkThatMouseIsOver = null;
 var developing = false;
 var labelsAreEnabledThroughForceLayout = false;
 
-var nodesAreSelectabel = true; //This currently does not work.
-var nodeSelected = null; //Reference to the node that has been selected
 var onClickAddLinkState = [null, null]; //This should be removed at some point
 GraphVisInteraction.linksAreSelectabel = true;
 GraphVisInteraction.linkThatIsSelected = null;
@@ -29,9 +27,7 @@ var nodeThatIsBeingDragged = null;
 var pathFromNodeToMouse = null;
 GraphVisInteraction.selectedNode = null;
 
-var defaultLinkColor = "black";
-
-var onSelectShowTextFieldAttribute = true; //Will show a small html textfield where name of attributes can be changed.
+var onSelectShowTextFieldAttribute = true;
 
 if(developing) {
   GraphVisInteraction.height=200;
@@ -69,7 +65,7 @@ if(labelsAreEnabledThroughForceLayout) {
   labelLayoutForce.start();
 }
 
-var force = d3
+GraphVisInteraction.force = d3
 	.layout
 	.force()
 	.size([GraphVisInteraction.width, GraphVisInteraction.height])
@@ -111,7 +107,7 @@ svg
 	.append("marker")
 	.attr("id", "end")
 	.attr("viewBox", "0 -5 10 10")
-	.attr("refX", 14)
+	.attr("refX", 14.3)
 	.attr("refY", -0.5)
 	.attr("markerWidth", 4)
 	.attr("markerHeight", 3)
@@ -120,8 +116,8 @@ svg
 	.attr("d", "M0, -5L10, 0L0,5")
 	;
 
-var nodesInteraction = force.nodes(),
-	links = force.links(),
+var nodesInteraction = GraphVisInteraction.force.nodes(),
+	links = GraphVisInteraction.force.links(),
   linkLabels = svg.selectAll(".linkLabels"),
 	node = svg.selectAll(".node"),
   nodeLabels = svg.selectAll(".nodeLabels"),
@@ -202,10 +198,23 @@ function onClickInteractiveLink (datum) {
 
 //See http://bl.ocks.org/mbostock/1153292
 function linkArc(d) {
-	var dx = d.target.x - d.source.x,
-		dy = d.target.y-d.source.y,
-		dr = Math.sqrt(dx * dx + dy*dy);
-	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 0,1 "+d.target.x+","+d.target.y;
+  var dx = d.target.x - d.source.x,
+      dy = d.target.y-d.source.y,
+      dr = Math.sqrt(dx * dx + dy*dy),
+      x = d.target.x,
+      y = d.target.y,
+      close = "",
+      large_arc_flag = 0,
+      large_sweep_flag = 1;
+  if(dr==0) {
+    x += 0.1;
+    close = " Z";
+    dr = 15;
+    large_arc_flag=1;
+    large_sweep_flag=0;
+  }
+
+	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 "+large_arc_flag+","+large_sweep_flag+" "+x+","+y+close;
 }
 
 function onClickAddLink(datum) {
@@ -223,7 +232,7 @@ function onClickAddLink(datum) {
     //GraphVisInteraction.updateSelectorWithLiterals(datum.type);
     GraphVisInteraction.updateSelectorWithNodeSelectors(datum);
 	} else { //If a starting node has already been selected
-		if (onClickAddLinkState[0]!=datum) {
+		//if (onClickAddLinkState[0]!=datum) {
       links.push({source: onClickAddLinkState[0], target: datum, type:"?"});
 			restart();
 			d3
@@ -233,7 +242,7 @@ function onClickAddLink(datum) {
 			GraphVisInteraction.selectedNode = null;
 			onClickAddLinkState[0]=null;
       deselectAllInteraction();
-		}
+		//}
 	}
   /*textFieldShowingAttributes[0][0]
     .value = datum.type
@@ -396,7 +405,7 @@ function restart() {
 
   printJSONOutput();
 
-	force.start();
+	GraphVisInteraction.force.start();
 }
 
 /*
