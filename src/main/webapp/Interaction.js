@@ -71,8 +71,8 @@ GraphVisInteraction.force = d3
 	.size([GraphVisInteraction.width, GraphVisInteraction.height])
 	.nodes([])
 	.linkDistance(90)
-	.charge(-300)
-	.gravity(0.1)
+	.charge(-100)
+	.gravity(0.05)
 	.on("tick", tick)
 	;
 
@@ -142,7 +142,7 @@ console.log(databaseOutput);
 
 function onClickAddNode() {
 	//The if statement is to prevent non-char values.
-	if(nodesInteraction.length<=25) {
+	//if(nodesInteraction.length<=25) {
 		var point = d3.mouse(this),
         node = {x: point[0], y: point[1], type:"?", literals:{}},
 			n = nodesInteraction.push(node);
@@ -176,7 +176,7 @@ function onClickAddNode() {
 
 
 		restart();
-	}
+	//}
 }
 
 var updateNode = function() {
@@ -430,9 +430,12 @@ function tick() {
   //.text(function(d) {return d.type;})
     ;
 
+  /*
+  The update to node is from http://bl.ocks.org/mbostock/1129492
+  */
 	node
-		.attr("cx", function(d) {return d.x;})
-		.attr("cy", function(d) {return d.y;})
+		.attr("cx", function(d) {return d.x = Math.max(10, Math.min(GraphVisInteraction.width - 10, d.x));})
+		.attr("cy", function(d) {return d.y = Math.max(10, Math.min(GraphVisInteraction.height - 10, d.y));})
 		;
 
   nodeLabels
