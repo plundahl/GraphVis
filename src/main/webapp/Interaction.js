@@ -470,6 +470,25 @@ function tick() {
   }
 }
 
+GraphVisInteraction.saveAllSelectorValues = function() {
+  var typeSelector = document.getElementById("typeSelector");
+
+  if(GraphVisInteraction.selectedNode!==null) {
+    var selectedNode = GraphVisInteraction.selectedNode;
+    GraphVisInteraction.updateNodeWithSelectedValues(selectedNode.__data__);
+    var index = d3.select(GraphVisInteraction.selectedNode).attr("internalInteractionID");
+    nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
+  }
+  if(GraphVisInteraction.linkThatIsSelected!==null) {
+    var predicateSelector = document.getElementById("literalOrPredicateSelector");
+    GraphVisInteraction.linkThatIsSelected.__data__.type = predicateSelector.options[predicateSelector.selectedIndex].text;
+    var index = d3.select(GraphVisInteraction.linkThatIsSelected).attr("internalInteractionID");
+    linkLabels[0][index].childNodes[0].data = GraphVisInteraction.linkThatIsSelected.__data__.type;
+    d3.select(GraphVisInteraction.linkThatIsSelected).attr("class", "link");
+  }
+  printJSONOutput();
+}
+
 function deselectAllInteraction() {
   /*
   Attempting to save attribute values
@@ -485,19 +504,7 @@ function deselectAllInteraction() {
   var typeSelector = document.getElementById("typeSelector");
   //var selectionOfLiteralsOrPredicate = document.getElementById("literalOrPredicateSelector");
 
-  if(GraphVisInteraction.selectedNode!==null) {
-    var selectedNode = GraphVisInteraction.selectedNode;
-    GraphVisInteraction.updateNodeWithSelectedValues(selectedNode.__data__);
-    var index = d3.select(GraphVisInteraction.selectedNode).attr("internalInteractionID");
-    nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
-  }
-  if(GraphVisInteraction.linkThatIsSelected!==null) {
-    var predicateSelector = document.getElementById("literalOrPredicateSelector");
-    GraphVisInteraction.linkThatIsSelected.__data__.type = predicateSelector.options[predicateSelector.selectedIndex].text;
-    var index = d3.select(GraphVisInteraction.linkThatIsSelected).attr("internalInteractionID");
-    linkLabels[0][index].childNodes[0].data = GraphVisInteraction.linkThatIsSelected.__data__.type;
-    d3.select(GraphVisInteraction.linkThatIsSelected).attr("class", "link");
-  }
+  GraphVisInteraction.saveAllSelectorValues();
 
   //TODO, make typeSelector text show nothing or null or whatever is deemed appropriate
   //textFieldShowingAttributes[0][0].value = "";
@@ -525,7 +532,7 @@ GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) 
   /*
   Update the type selector.
   */
-  var selectorInnerHTML = "<div id='typeSelectorDiv'>"+
+  var selectorInnerHTML = "<div id='typeSelectorDiv' onchange='GraphVisInteraction.saveAllSelectorValues()'>"+
       "Select type: <select id='typeSelector'>"+
       "<option value='?'>?</option>";
   for(var iterator=0; iterator < GraphVisInteraction.availableTypes.length; iterator++) {
@@ -588,7 +595,7 @@ GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral, liter
     selectorInnerHTML += "<option value='"+availableLiterals[innerIterator]+"'>"+
     availableLiterals[innerIterator] + "</option>";
   }
-  selectorInnerHTML += "</select><select id='literalValueSelector"+String(iterator)+"' ><option value=''></selector></div>";
+  selectorInnerHTML += "</select><select id='literalValueSelector"+String(iterator)+"' onchange='GraphVisInteraction.saveAllSelectorValues()' ><option value=''></selector></div>";
   selector.innerHTML += selectorInnerHTML;
   //var literalSelector = document.getElementById("literalSelector"+String(iterator));
   //GraphVisInteraction.setSelectorTo( literalSelector, String(currentLiteral) );
@@ -649,7 +656,7 @@ GraphVisInteraction.setSelectorTo = function( selector, value ) {
 
 GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) {
   var selector = document.getElementById("selectionForInteractive");
-  var selectorInnerHTML = "Select predicate: <select id='literalOrPredicateSelector'>";
+  var selectorInnerHTML = "Select predicate: <select id='literalOrPredicateSelector' onchange='GraphVisInteraction.saveAllSelectorValues()'>";
   selectorInnerHTML += "<option value='?'>?</option>";
   for(var iterator=0; iterator < GraphVisInteraction.availablePredicates.length; iterator++) {
     selectorInnerHTML += "<option value='"+GraphVisInteraction.availablePredicates[iterator]+"'>"+
