@@ -28,7 +28,7 @@ public class RDFDatabaseSingleton {
 	
 	public synchronized static RDFDatabase getInstance() {
 		if(instance==null) {
-			String rdfs[] = new File("./").list(new FilenameFilter() {
+			File rdfs[] = new File("./rdf").listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
                     if(name.endsWith(".rdf")) return true;
@@ -36,8 +36,8 @@ public class RDFDatabaseSingleton {
                 }
             });
             if(rdfs.length>0) {
-                System.out.println("Attempting to load "+rdfs[0]);
-                instance = new RDFDatabase(rdfs[0]);
+                System.out.println("Attempting to load "+rdfs[0].getName());
+                instance = new RDFDatabase(rdfs[0].getAbsolutePath());
             } else {
                 System.err.println("No file with suffix .rdf could be found.");
                 System.exit(1);
