@@ -105,3 +105,10 @@ function implodeNodes(array,origin){
 	array = _.difference(array,origin); //Tar bort noden som klickades på.
 	nodes = _.difference(nodes, array); //Tar bort alla grannar till noden i miserables.
 }*/
+
+/*
+JA: Redraw on resize, not sure if this is needed though?
+*/
+GraphVisVisualization.resize = function() {
+  graph.redraw();
+}
