@@ -5,6 +5,16 @@ Static variables
 
 var GraphVisInteraction = {};
 
+//d3.select(window).on("resize", GraphVisInteraction.resize);
+
+GraphVisInteraction.resize = function() {
+  GraphVisInteraction.width = svg[0][0].parentElement.clientWidth;
+  GraphVisInteraction.height = svg[0][0].parentElement.clientHeight;
+  //console.log(GraphVisInteraction.width);
+  //console.log(GraphVisInteraction.height);
+  GraphVisInteraction.force.size([GraphVisInteraction.width, GraphVisInteraction.height]).resume();
+}
+
 GraphVisInteraction.width = 1000;
 GraphVisInteraction.height = 300;
 GraphVisInteraction.anchorAttributes = ["x", "y", "fixed", "labels", "node"];
@@ -65,6 +75,23 @@ if(labelsAreEnabledThroughForceLayout) {
   labelLayoutForce.start();
 }
 
+var svg = d3
+/*
+	.select("body")
+	.append("div")
+	.attr("class", "background")
+  .attr("title", "Double-click on a empty spot to create a new node.")
+  */
+  .select("#backgroundForInteraction")
+	.append("svg")
+  //.attr("title", "TEST!")
+	//.attr("width", GraphVisInteraction.width)
+	//.attr("height", GraphVisInteraction.height)
+  .attr("class", "mainSVG")
+	.on("dblclick", onClickAddNode)
+	.on("click", deselectAllInteraction)
+	;
+
 GraphVisInteraction.force = d3
 	.layout
 	.force()
@@ -83,22 +110,6 @@ var dragHandler = d3
 	.on("drag", onDrag)
 	.on("dragstart", onDragStart)
 	.on("dragend", onDragEnd)
-	;
-
-var svg = d3
-/*
-	.select("body")
-	.append("div")
-	.attr("class", "background")
-  .attr("title", "Double-click on a empty spot to create a new node.")
-  */
-  .select("#backgroundForInteraction")
-	.append("svg")
-  //.attr("title", "TEST!")
-	.attr("width", GraphVisInteraction.width)
-	.attr("height", GraphVisInteraction.height)
-	.on("dblclick", onClickAddNode)
-	.on("click", deselectAllInteraction)
 	;
 
 //Markers!?
