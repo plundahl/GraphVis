@@ -135,6 +135,39 @@ public class RDFDatabase {
     System.out.println("Worked");
     return result;
   }
+  
+    /*
+   * Query as a normal sparql query.
+   */
+  public String SPARQLToText(String sparqlString)
+  {
+    String result = "";
+    try{
+
+    sparqlString = prefix + sparqlString;
+
+    Query query = QueryFactory.create(sparqlString) ;
+
+    //Run the query
+    ResultSet results = runQuery(sparqlString);
+
+    //Output the result to a string.
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    //TODO: Choose a good format.
+    //ResultSetFormatter.outputAsRDF(out, "RDFJSON", results);
+    ResultSetFormatter.out(out, results, query);
+    result = new String(out.toString());
+    //Close this query. 
+    closeQuery();
+    }catch (QueryCancelledException e )
+    {
+      System.out.println("Timed out");
+      return "Query timed out";
+    }
+    System.out.println("Worked");
+    return result;
+  }
+
 
 
   //Takes a resultset and turns it into a graph.
