@@ -1,5 +1,5 @@
 /*
-* Copyright (c) <YEAR>, <OWNER>
+* Copyright (c) 2014, Jonatan Asketorp, Jasmin Suljkic, Petter Lundahl, Johan Carlsson
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -14,7 +14,7 @@ var nodeGroup = [];
 var nodes;
 var edges;
 var graph;
-
+var GraphVisVisualization = {};
 
 /*
 Updates the visualization once new information has arrived.

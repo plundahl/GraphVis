@@ -1,5 +1,5 @@
 /*
-* Copyright (c) <YEAR>, <OWNER>
+* Copyright (c) 2014, Jonatan Asketorp, Jasmin Suljkic, Petter Lundahl, Johan Carlsson
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -9,12 +9,62 @@
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+var connectTo = "http://localhost:8888/"
+
 /*
 Gets the JSON structured in the same manner as http://bl.ocks.org/mbostock/4062045 .
 */
 function orderJSONinOneGraph( returnedObject ) {
   visualizationNodes = returnedObject.nodes;
   visualizationLinks = returnedObject.links;
+}
+
+/*
+Handles refreshing the SPARQL representation.
+*/
+function getSPARQLInterpretation( responseObject ) {
+  if(responseObject===undefined) {
+    var message = document.getElementById("databaseOutput").value;
+    if(message) {
+      var xhr_object = new XMLHttpRequest();
+      xhr_object.open("POST", connectTo+"db-sparqlinterpretation");
+      xhr_object.setRequestHeader('Accept-Language', 'sv-se');
+      xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
+      xhr_object.onreadystatechange = function() {
+      if (xhr_object.readyState == 4 && xhr_object.status == 200) {
+        var responseObject = xhr_object.responseText;
+        getSPARQLInterpretation(responseObject);
+      }
+    };
+    xhr_object.send(message);
+    }
+  } else {
+    document.getElementById("SPARQLQueryTextArea").value=responseObject;
+  }
+}
+
+/*
+Handles sending a pure SPARQL request.
+*/
+function sendSPARQLQuery( responseObject ) {
+  if(responseObject===undefined) {
+    var message = document.getElementById("SPARQLQueryTextArea").value;
+    if(message) {
+      var xhr_object = new XMLHttpRequest();
+      xhr_object.open("POST", connectTo+"db-sparql");
+      xhr_object.setRequestHeader('Accept-Language', 'sv-se');
+      xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
+      xhr_object.onreadystatechange = function() {
+        if (xhr_object.readyState == 4 && xhr_object.status == 200) {
+          var responseObject = xhr_object.responseText;
+          sendSPARQLQuery(responseObject);
+        }
+      };
+      xhr_object.send(message);
+    }
+  } else {
+    document.getElementById("SPARQLResponseTextArea").value=responseObject;
+  }
 }
 
 /*
@@ -98,9 +148,6 @@ function printJSONOutput () {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
   }
   textToTextField += ']}';
-  if(developing) {
-    console.log(textToTextField);
-  }
 
   databaseOutput[0][0].value = textToTextField;
 }
@@ -117,14 +164,13 @@ function sendToDatabase() {
   try {
     JSON.parse(requestToDatabase);
     var xhr_object = new XMLHttpRequest();
-		xhr_object.open("POST", "http://localhost:8888/db/jena");
+		xhr_object.open("POST", connectTo+"db/jena");
 		xhr_object.setRequestHeader('Accept-Language', 'sv-se');
 		xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
 		xhr_object.onreadystatechange = function() {
 			if (xhr_object.readyState == 4 && xhr_object.status == 200) {
         var responseObject = JSON.parse(xhr_object.responseText);
-        console.log(responseObject);
-				
+
 				updateVisualization(responseObject);
         updateTextAreaWithTextResponse(responseObject.sparqlResult);
         updateTextAreaWithSPARQLQuery(responseObject.sparqlQuery);
@@ -148,7 +194,7 @@ function updateTextAreaWithSPARQLQuery( SPARQLText ) {
 
 function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
   var xhr_object = new XMLHttpRequest();
-	xhr_object.open("POST", "http://localhost:8888/"+prefix);
+	xhr_object.open("POST", connectTo+prefix);
 	xhr_object.setRequestHeader('Accept-Language', 'sv-se');
 	xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
 	xhr_object.onreadystatechange = function() {
@@ -157,56 +203,29 @@ function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
 		callingFunction(responseObject);
 	  }
   };
-  xhr_object.send();
+  xhr_object.send(message);
 }
 
 function getPredicatesForInteraction( responseObject ) {
-  //console.log("getPredicatesForInteraction");
   if(responseObject===undefined) {
     requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction);
   } else {
-    console.log(responseObject);
     GraphVisInteraction.availablePredicates = responseObject.edgetypes;
-    console.log("Available predicates "+GraphVisInteraction.availablePredicates);
-    //console.log(GraphVisInteraction.availablePredicates);
   }
 }
 
 function getTypesForInteraction( responseObject ) {
-  //console.log("getTypesForInteraction");
   if(responseObject===undefined) {
     requestFromDatabaseWithPrefix("db-types", null, getTypesForInteraction);
   } else {
     GraphVisInteraction.availableTypes = responseObject.types;
-    console.log("Available types for interaction " + GraphVisInteraction.availableTypes);
-    //GraphVisInteraction.updateSelectorWithTypes();
-    //console.log(GraphVisInteraction.availableTypes);
   }
 }
 
 function getLiteralsForInteraction( responseObject ) {
-  //console.log("getLiteralsForInteraction");
   if(responseObject===undefined) {
     requestFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction);
   } else {
     GraphVisInteraction.availableLiterals = responseObject.literals;
-    /*
-    TEST LITERALS
-    */
-    /*
-    var testString = '{"literals":{'
-      +'"Jasmin":["Server","Communication"],'
-      +'"Johan":["Visualization"],'
-      +'"Jonatan":["Interaction"],'
-      +'"Petter":["Jena","Conversion to SPARQL"]}}';
-    GraphVisInteraction.availableLiterals = JSON.parse(testString).literals;
-    console.log(GraphVisInteraction.availableLiterals);
-    console.log("Available literals for interaction " + GraphVisInteraction.availableLiterals);
-    var keys = _.keys(GraphVisInteraction.availableLiterals);
-    for(var i = keys.length-1; i>=0; i--) {
-      console.log(keys[i]+" "+GraphVisInteraction.availableLiterals[keys[i]]);
-    }
-    */
-    //console.log(availableLiterals);
   }
 }
