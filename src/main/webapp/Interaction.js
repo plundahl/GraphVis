@@ -107,16 +107,6 @@ var updateNode = function() {
 	});
 };
 
-function onClickInteractiveLink (datum) {
-  if(GraphVisInteraction.linksAreSelectabel) {
-    GraphVisInteraction.deselectAllInteraction();
-    GraphVisInteraction.linkThatIsSelected = this;
-    d3.select(this).attr("class", "linkSelected");
-    GraphVisInteraction.updateSelectorWithPredicates( datum.type );
-    d3.event.stopPropagation();
-  }
-}
-
 //See http://bl.ocks.org/mbostock/1153292
 function linkArc(d) {
   var dx = d.target.x - d.source.x,
@@ -137,34 +127,6 @@ function linkArc(d) {
 
 	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 "+large_arc_flag+","+large_sweep_flag+" "+x+","+y+close;
 }
-
-function onClickAddLink(datum) {
-	if(d3.event.defaultPrevented) return;
-  /*
-  This is when a node gets selected...
-  */
-	if(GraphVisInteraction.onClickAddLinkState===null) { //If the start node is not selected
-		GraphVisInteraction.onClickAddLinkState=datum;
-		GraphVisInteraction.selectedNode = this;
-		d3
-			.select(GraphVisInteraction.selectedNode)
-			.style("fill", "green")
-			;
-    GraphVisInteraction.updateSelectorWithNodeSelectors(datum);
-	} else { //If a starting node has already been selected
-      GraphVisInteraction.links.push({source: GraphVisInteraction.onClickAddLinkState, target: datum, type:"?"});
-			GraphVisInteraction.restart();
-			d3
-				.select(GraphVisInteraction.selectedNode)
-				.style("fill", "black")
-				;
-			GraphVisInteraction.selectedNode = null;
-			GraphVisInteraction.onClickAddLinkState=null;
-      GraphVisInteraction.deselectAllInteraction();
-	}
-	d3.event.stopPropagation();
-}
-
 
 function onMouseOverNode (datum) {
 	d3.event.stopPropagation(); //2 nodes really shouldn't be on top of eachother but w/e
@@ -344,6 +306,44 @@ GraphVisInteraction.deselectAllInteraction = function() {
   printJSONOutput(); //Update
 }
 GraphVisInteraction.svg.on("click", GraphVisInteraction.deselectAllInteraction);
+
+function onClickAddLink(datum) {
+	if(d3.event.defaultPrevented) return;
+  /*
+  This is when a node gets selected...
+  */
+	if(GraphVisInteraction.onClickAddLinkState===null) { //If the start node is not selected
+    GraphVisInteraction.deselectAllInteraction();
+		GraphVisInteraction.onClickAddLinkState=datum;
+		GraphVisInteraction.selectedNode = this;
+		d3
+			.select(GraphVisInteraction.selectedNode)
+			.style("fill", "green")
+			;
+    GraphVisInteraction.updateSelectorWithNodeSelectors(datum);
+	} else { //If a starting node has already been selected
+      GraphVisInteraction.links.push({source: GraphVisInteraction.onClickAddLinkState, target: datum, type:"?"});
+			GraphVisInteraction.restart();
+			d3
+				.select(GraphVisInteraction.selectedNode)
+				.style("fill", "black")
+				;
+			GraphVisInteraction.selectedNode = null;
+			GraphVisInteraction.onClickAddLinkState=null;
+      GraphVisInteraction.deselectAllInteraction();
+	}
+	d3.event.stopPropagation();
+}
+
+function onClickInteractiveLink (datum) {
+  if(GraphVisInteraction.linksAreSelectabel) {
+    GraphVisInteraction.deselectAllInteraction();
+    GraphVisInteraction.linkThatIsSelected = this;
+    d3.select(this).attr("class", "linkSelected");
+    GraphVisInteraction.updateSelectorWithPredicates( datum.type );
+    d3.event.stopPropagation();
+  }
+}
 
 /*
 This function should be called when the node options should appear.
