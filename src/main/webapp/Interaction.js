@@ -65,7 +65,6 @@ GraphVisInteraction.force = d3
 	.linkDistance(90)
 	.charge(-100)
 	.gravity(0.05)
-	.on("tick", tick)
 	;
 
 //Markers!?
@@ -99,16 +98,11 @@ GraphVisInteraction.databaseOutput = d3
   .attr("title", "This shows what will be sent to the server.")
 	;
 
-
-
-var updateNode = function() {
-	this.attr("transform", function(d) {
-		return "translate(" + d.x + "," + d.y + ")";
-	});
-};
-
-//See http://bl.ocks.org/mbostock/1153292
-function linkArc(d) {
+/*
+Function that creates the links between different nodes.
+Inspiration from http://bl.ocks.org/mbostock/1153292
+*/
+GraphVisInteraction.linkArc = function(d) {
   var dx = d.target.x - d.source.x,
       dy = d.target.y-d.source.y,
       dr = Math.sqrt(dx * dx + dy*dy),
@@ -128,7 +122,7 @@ function linkArc(d) {
 	return "M"+d.source.x+","+d.source.y+"A"+dr+","+dr+" 0 "+large_arc_flag+","+large_sweep_flag+" "+x+","+y+close;
 }
 
-function onMouseOverNode (datum) {
+GraphVisInteraction.onMouseOverNode = function (datum) {
 	d3.event.stopPropagation(); //2 nodes really shouldn't be on top of eachother but w/e
 	GraphVisInteraction.nodeThatMouseIsOver = this;
 	d3.select(this)
@@ -136,7 +130,7 @@ function onMouseOverNode (datum) {
 		;
 }
 
-function onMouseExitNode (datum) {
+GraphVisInteraction.onMouseExitNode = function (datum) {
 	d3.event.stopPropagation();
 	GraphVisInteraction.nodeThatMouseIsOver = null;
 	if(this==GraphVisInteraction.selectedNode) return;
@@ -169,7 +163,7 @@ GraphVisInteraction.restart = function() {
   .attr("marker-end", "url(#end)")
   .attr("id", function(d,i) {return 'linkpath'+i;})
   .attr("internalInteractionID", function(d,i) {return i;})
-  .on("click", onClickInteractiveLink)
+  .on("click", GraphVisInteraction.onClickInteractiveLink)
   .on("dblclick", function() {d3.event.stopPropagation();}) //Double clicking on a link should not create a new node
   .on("mouseover", function() {
     d3.select(this).attr("class", "linkHovered");
@@ -212,10 +206,10 @@ GraphVisInteraction.restart = function() {
 		.attr("class", "node")
 		.attr("r", 10)
     .attr("internalInteractionID", function(d,i) {return i;})
-		.on("click", onClickAddLink)
+		.on("click", GraphVisInteraction.onClickAddLink)
 		.on("dblclick", function() {d3.event.stopPropagation();})
-		.on("mouseover", onMouseOverNode)
-		.on("mouseout", onMouseExitNode)
+		.on("mouseover", GraphVisInteraction.onMouseOverNode)
+		.on("mouseout", GraphVisInteraction.onMouseExitNode)
 		;
 
   GraphVisInteraction.nodeLabels
@@ -234,10 +228,10 @@ GraphVisInteraction.restart = function() {
 /*
 What happens on each tick of the force-layout
 */
-function tick() {
+GraphVisInteraction.tick = function () {
 
 	GraphVisInteraction.link
-		.attr("d", linkArc);
+		.attr("d", GraphVisInteraction.linkArc);
 
   GraphVisInteraction.linkLabels
     .attr("x", function(d, i) {
@@ -265,6 +259,7 @@ function tick() {
     .attr("y", function(d) {return d.y+10;})
     ;
 }
+GraphVisInteraction.force.on("tick", GraphVisInteraction.tick)
 
 GraphVisInteraction.saveAllSelectorValues = function() {
   var typeSelector = document.getElementById("typeSelector");
@@ -307,7 +302,7 @@ GraphVisInteraction.deselectAllInteraction = function() {
 }
 GraphVisInteraction.svg.on("click", GraphVisInteraction.deselectAllInteraction);
 
-function onClickAddLink(datum) {
+GraphVisInteraction.onClickAddLink = function (datum) {
 	if(d3.event.defaultPrevented) return;
   /*
   This is when a node gets selected...
@@ -335,7 +330,7 @@ function onClickAddLink(datum) {
 	d3.event.stopPropagation();
 }
 
-function onClickInteractiveLink (datum) {
+GraphVisInteraction.onClickInteractiveLink = function (datum) {
   if(GraphVisInteraction.linksAreSelectabel) {
     GraphVisInteraction.deselectAllInteraction();
     GraphVisInteraction.linkThatIsSelected = this;
