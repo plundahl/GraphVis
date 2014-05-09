@@ -44,7 +44,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
         <div id="selectionForInteractive">
             Select a node or link to update this section.
         </div>
-        <button onClick="sendButtonEvent()" title="Press this button to send your query.">Send</button>
+        <button onClick="sendButtonEvent();GraphVisInteraction.deselectAllInteraction()" title="Press this button to send your query.">Send</button>
         <textarea class="sparqlTextArea"id="SPARQLQueryTextArea" wrap=hard title="The SPARQL representation of your search will be shown here.">The SPARQL query will be shown here as text</textarea>
         <button onClick="getSPARQLInterpretation()" title="Press this button to update the SPARQL representation of the visual query.">Refresh SPARQL</button>
         <button onClick="sendSPARQLQuery()" title="Press this button to send a pure SPARQL query.">SPARQL query</button>
