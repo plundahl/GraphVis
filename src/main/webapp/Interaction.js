@@ -47,11 +47,9 @@ GraphVisInteraction.svg = d3
   .select("#backgroundForInteraction")
 	.append("svg")
   .attr("class", "mainSVG")
-	.on("click", GraphVisInteraction.deselectAllInteraction)
 	;
 
 GraphVisInteraction.onClickAddNode = function() {
-  console.log("Oy!");
   var point = d3.mouse(this),
       node = {x: point[0], y: point[1], type:"?", literals:{}},
       n = GraphVisInteraction.nodesInteraction.push(node);
@@ -345,6 +343,7 @@ GraphVisInteraction.deselectAllInteraction = function() {
   GraphVisInteraction.updateSelectorWithDeselect();
   printJSONOutput(); //Update
 }
+GraphVisInteraction.svg.on("click", GraphVisInteraction.deselectAllInteraction);
 
 /*
 This function should be called when the node options should appear.
