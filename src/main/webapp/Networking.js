@@ -115,15 +115,15 @@ Can be done shorter and easier but meh, serves it purpose, prints out a JSON pre
 function printJSONOutput () {
   var textToTextField="";
   textToTextField += '{"nodes":[';
-  for(var iterator = 0; iterator < nodesInteraction.length; iterator++) {
-    var keys = _.keys(nodesInteraction[iterator]);
+  for(var iterator = 0; iterator < GraphVisInteraction.nodesInteraction.length; iterator++) {
+    var keys = _.keys(GraphVisInteraction.nodesInteraction[iterator]);
     textToTextField += '{';
     for(var key = 0; key < keys.length; key++){
       if(!_.contains(GraphVisInteraction.d3NodeKeyValues, keys[key])) {
-        textToTextField += '"'+keys[key]+'":"'+nodesInteraction[iterator][keys[key]]+'",';
+        textToTextField += '"'+keys[key]+'":"'+GraphVisInteraction.nodesInteraction[iterator][keys[key]]+'",';
       }
     }
-    textToTextField += '"literals":'+JSON.stringify(nodesInteraction[iterator].literals);
+    textToTextField += '"literals":'+JSON.stringify(GraphVisInteraction.nodesInteraction[iterator].literals);
     if(textToTextField.charAt(textToTextField.length -1)==',') {
       textToTextField = textToTextField.slice(0, -1); //"Removes" last character
     }
@@ -133,23 +133,23 @@ function printJSONOutput () {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
   }
   textToTextField += '], "links":[';
-  for (var iterator = 0; iterator < links.length; iterator++) {
-    var keys = _.keys(links[iterator]);
+  for (var iterator = 0; iterator < GraphVisInteraction.links.length; iterator++) {
+    var keys = _.keys(GraphVisInteraction.links[iterator]);
     textToTextField += '{';
     for(var key = 0; key < keys.length; key++) {
       if(!_.contains(GraphVisInteraction.d3NodeKeyValues, keys[key])) {
-        textToTextField += '"'+keys[key]+'":"'+links[iterator][keys[key]]+'",';
+        textToTextField += '"'+keys[key]+'":"'+GraphVisInteraction.links[iterator][keys[key]]+'",';
       }
     }
-    textToTextField += '"source":'+links[iterator]["source"].index+','+
-      '"target":'+links[iterator]["target"].index+'},';
+    textToTextField += '"source":'+GraphVisInteraction.links[iterator]["source"].index+','+
+      '"target":'+GraphVisInteraction.links[iterator]["target"].index+'},';
   }
   if(textToTextField.charAt(textToTextField.length - 1)==',') {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
   }
   textToTextField += ']}';
 
-  databaseOutput[0][0].value = textToTextField;
+  GraphVisInteraction.databaseOutput[0][0].value = textToTextField;
 }
 
 /*
@@ -157,7 +157,7 @@ Calls updateVisualization with the returned object.
 */
 function sendToDatabase() {
   var xhr_object = null;
-  var requestToDatabase = databaseOutput[0][0].value;
+  var requestToDatabase = GraphVisInteraction.databaseOutput[0][0].value;
   /*
   Haven't found any better solutions to check the output to database.
   */
