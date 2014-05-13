@@ -123,11 +123,21 @@ function printJSONOutput () {
         textToTextField += '"'+keys[key]+'":"'+GraphVisInteraction.nodesInteraction[iterator][keys[key]]+'",';
       }
     }
-    textToTextField += '"literals":'+JSON.stringify(GraphVisInteraction.nodesInteraction[iterator].literals);
+    textToTextField += '"literals":[';
+    var literals = GraphVisInteraction.nodesInteraction[iterator].literals;
+    var literalKeys = _.keys(literals);
+    for(var literalKey = 0; literalKey< literalKeys.length; literalKey++) {
+      textToTextField += '"'+literalKeys[literalKey]+'","'+literals[literalKeys[literalKey]]+'",';
+    }
+
+    //console.log(JSON.stringify(GraphVisInteraction.nodesInteraction[iterator].literals));
+    //textToTextField += GraphVisInteraction.nodesInteraction[iterator];
+
+
     if(textToTextField.charAt(textToTextField.length -1)==',') {
       textToTextField = textToTextField.slice(0, -1); //"Removes" last character
     }
-    textToTextField += '},';
+    textToTextField += ']},';
   }
   if(textToTextField.charAt(textToTextField.length - 1)==',') {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
@@ -148,7 +158,7 @@ function printJSONOutput () {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
   }
   textToTextField += ']}';
-
+  //console.log(textToTextField);
   GraphVisInteraction.databaseOutput[0][0].value = textToTextField;
 }
 
