@@ -76,9 +76,9 @@ function verifyJSONForVisjsNodes( returnedObject ) {
   if(returnedNodes[0]!==null&&(!_.has(returnedNodes[0], "id"))) {
     for(var iterator = 0; iterator<returnedNodes.length; iterator++) {
       returnedNodes[iterator].id = iterator;
-	  returnedNodes[iterator].label = returnedNodes[iterator].value; //This will write out the nodes label.
-	  returnedNodes[iterator].title = returnedNodes[iterator].type;
-	  returnedNodes[iterator].group = returnedNodes[iterator].type;
+      returnedNodes[iterator].label = returnedNodes[iterator].value; //This will write out the nodes label.
+      returnedNodes[iterator].title = returnedNodes[iterator].type;
+      returnedNodes[iterator].group = returnedNodes[iterator].type;
     }
   }
 
@@ -95,7 +95,7 @@ function verifyJSONForVisjsEdges( returnedObject ) {
   if(returnedEdges[0]!==null&&_.has(returnedEdges[0], "target")) {
     for(var iterator = returnedEdges.length-1; iterator>=0; iterator--) {
       returnedEdges[iterator].label = returnedEdges[iterator].type;	//This sets the label for displaying on the edges in the graph.
-	  returnedEdges[iterator].from = returnedEdges[iterator].source;
+      returnedEdges[iterator].from = returnedEdges[iterator].source;
       delete returnedEdges[iterator].source;
       returnedEdges[iterator].to = returnedEdges[iterator].target;
       delete returnedEdges[iterator].target;
@@ -103,7 +103,7 @@ function verifyJSONForVisjsEdges( returnedObject ) {
   }
 
   for(var iterator = returnedEdges.length-1; iterator>=0; iterator--) {
-   delete returnedEdges[iterator].id;
+    delete returnedEdges[iterator].id;
   }
 
   return returnedEdges;
@@ -123,11 +123,17 @@ function printJSONOutput () {
         textToTextField += '"'+keys[key]+'":"'+GraphVisInteraction.nodesInteraction[iterator][keys[key]]+'",';
       }
     }
-    textToTextField += '"literals":'+JSON.stringify(GraphVisInteraction.nodesInteraction[iterator].literals);
+    textToTextField += '"literals":[';
+    var literals = GraphVisInteraction.nodesInteraction[iterator].literals;
+    var literalKeys = _.keys(literals);
+    for(var literalKey = 0; literalKey< literalKeys.length; literalKey++) {
+      textToTextField += '"'+literalKeys[literalKey]+'","'+literals[literalKeys[literalKey]]+'",';
+    }
+
     if(textToTextField.charAt(textToTextField.length -1)==',') {
       textToTextField = textToTextField.slice(0, -1); //"Removes" last character
     }
-    textToTextField += '},';
+    textToTextField += ']},';
   }
   if(textToTextField.charAt(textToTextField.length - 1)==',') {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
@@ -148,7 +154,6 @@ function printJSONOutput () {
     textToTextField = textToTextField.slice(0, -1); //"Removes" last character
   }
   textToTextField += ']}';
-
   GraphVisInteraction.databaseOutput[0][0].value = textToTextField;
 }
 
