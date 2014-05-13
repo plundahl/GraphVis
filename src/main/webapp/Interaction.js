@@ -269,6 +269,8 @@ GraphVisInteraction.saveAllSelectorValues = function() {
     GraphVisInteraction.updateNodeWithSelectedValues(selectedNode.__data__);
     var index = d3.select(GraphVisInteraction.selectedNode).attr("internalInteractionID");
     GraphVisInteraction.nodeLabels[0][index].childNodes[0].data = GraphVisInteraction.selectedNode.__data__.type;
+    GraphVisInteraction.updateSelectorWithNodeSelectors(GraphVisInteraction.onClickAddLinkState);
+
   }
   if(GraphVisInteraction.linkThatIsSelected!==null) {
     var predicateSelector = document.getElementById("literalOrPredicateSelector");
@@ -381,7 +383,7 @@ GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) 
   */
   GraphVisInteraction.setSelectorTo( document.getElementById("typeSelector"), currentDatum.type);
 
-  for(var iterator=literals.length-1; iterator>=0; iterator--) {
+  for(var iterator=0; iterator<literals.length; iterator++) {
     var key = literals[iterator];
     GraphVisInteraction.setSelectorTo( document.getElementById("literalSelector"+String(iterator)), literals[iterator]);
   }
