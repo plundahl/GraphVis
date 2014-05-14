@@ -14,10 +14,13 @@ package g1.database;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 public class Node {
   public String type;
   public String value;
+  public List<String> literals = new ArrayList<String>();
 
   Node(String tmp)
   {
@@ -28,4 +31,24 @@ public class Node {
   {
     return !type.equals("?");
   }
+
+  public boolean hasLit()
+  {
+    return !literals.isEmpty();
+  }
+
+  public int nrLit()
+  {
+    return literals.size()/2;
+  }
+
+  public String getLit(int i)
+  {
+    return literals.get(i*2+1);
+  } 
+  
+  public String getLitDomain(int i)
+  {
+    return literals.get(i*2);
+  } 
 }

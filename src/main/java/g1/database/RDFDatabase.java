@@ -250,11 +250,18 @@ public class RDFDatabase {
     }
     query += "WHERE { ";
 
+
+    int literalCounter = 0;
     for(int i = 0; i<queryGraph.nodes.size(); i++)
     {
       Node n = queryGraph.nodes.get(i);
       if(n.hasType())
         query += "?n" + i + " a <" + n.type + "> . ";
+      if(n.hasLit())
+        for(int j = 0; j < n.nrLit(); j++)
+        {
+          query += "?n" + i + " <" + n.getLitDomain(j) + "> \"" + n.getLit(j) + "\" .";
+        }
     }
     for(int i = 0; i<queryGraph.links.size(); i++)
     {
