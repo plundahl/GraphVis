@@ -332,30 +332,35 @@ This function should be called to remove all the elements related to selecting v
 */
 GraphVisInteraction.deselectAllInteraction = function() {
   /*
-  Attempting to save attribute values
+  Attempting to save all selectable values
   */
   GraphVisInteraction.saveAllSelectorValues();
-
-  GraphVisInteraction.linkThatIsSelected=null;
-  GraphVisInteraction.onClickAddLinkState=null;
-  if(GraphVisInteraction.selectedNode!==null) {
+  GraphVisInteraction.linkThatIsSelected=null; //Removes any reference to a selected link
+  GraphVisInteraction.onClickAddLinkState=null; //Removes any reference to a selected node
+  if(GraphVisInteraction.selectedNode!==null) { //If the node is selected remove its color.
     d3
 			.select(GraphVisInteraction.selectedNode)
 			.style("fill", "black")
 			;
   }
-	GraphVisInteraction.selectedNode=null;
-  GraphVisInteraction.updateSelectorWithDeselect();
+	GraphVisInteraction.selectedNode=null; //Removes references to the selected node
+  GraphVisInteraction.updateSelectorWithDeselect(); //Update the selectors to show the default text.
   printJSONOutput(); //Update
 }
-GraphVisInteraction.svg.on("click", GraphVisInteraction.deselectAllInteraction);
+GraphVisInteraction.svg.on("click", GraphVisInteraction.deselectAllInteraction); //If a single click on the background of the SVG is performed, call deselect.
 
+/*
+This function is meant to be called to select a node. It has additional functionality to handle the creation of a link when two nodes are clicked in succession.
+*/
 GraphVisInteraction.onClickAddLink = function (datum) {
 	if(d3.event.defaultPrevented) return;
   /*
   This is when a node gets selected...
   */
 	if(GraphVisInteraction.onClickAddLinkState===null) { //If the start node is not selected
+    /*
+    Select the current node
+    */
     GraphVisInteraction.deselectAllInteraction();
 		GraphVisInteraction.onClickAddLinkState=datum;
 		GraphVisInteraction.selectedNode = this;
@@ -364,50 +369,60 @@ GraphVisInteraction.onClickAddLink = function (datum) {
 			.style("fill", "green")
 			;
     GraphVisInteraction.updateSelectorWithNodeSelectors(datum);
-	} else { //If a starting node has already been selected
-      GraphVisInteraction.links.push({source: GraphVisInteraction.onClickAddLinkState, target: datum, type:"?"});
-			GraphVisInteraction.restart();
-			d3
-				.select(GraphVisInteraction.selectedNode)
-				.style("fill", "black")
-				;
-			GraphVisInteraction.selectedNode = null;
-			GraphVisInteraction.onClickAddLinkState=null;
-      GraphVisInteraction.deselectAllInteraction();
+	} else { //If a starting node has already been selected, create a link.
+    GraphVisInteraction.links.push({source: GraphVisInteraction.onClickAddLinkState, target: datum, type:"?"}); //Adds a link
+    GraphVisInteraction.restart(); //Restarts physics
+    /*
+    Deselect
+    */
+    d3
+      .select(GraphVisInteraction.selectedNode)
+      .style("fill", "black");
+    GraphVisInteraction.selectedNode = null;
+    GraphVisInteraction.onClickAddLinkState=null;
+    GraphVisInteraction.deselectAllInteraction();
 	}
 	d3.event.stopPropagation();
 }
 
+/*
+This function is meant to handle click events on links.
+*/
 GraphVisInteraction.onClickInteractiveLink = function (datum) {
-  GraphVisInteraction.deselectAllInteraction();
-  GraphVisInteraction.linkThatIsSelected = this;
-  d3.select(this).attr("class", "linkSelected");
-  GraphVisInteraction.updateSelectorWithPredicates( datum.type );
+  GraphVisInteraction.deselectAllInteraction(); //Deselect if anything is selected
+  GraphVisInteraction.linkThatIsSelected = this; //Make the selected link the linkThatIsSelected
+  d3.select(this).attr("class", "linkSelected"); //Change class of link to change the graphics
+  GraphVisInteraction.updateSelectorWithPredicates( datum.type ); //Update selectors to correspond to the now selected link.
   d3.event.stopPropagation();
 }
 
 /*
-This function should be called when the node options should appear.
+This function should be called when the selectors for a node should appear. It will create a selector for type and a selector for each literal and one additional empty to add more literals.
+Also adds the delete button.
 */
 GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) {
-  var selector = document.getElementById("selectionForInteractive");
+  var selector = document.getElementById("selectionForInteractive"); //The DOM-element that contains everything relevant to the selectors.
   /*
   Update the type selector.
   */
   var selectorInnerHTML = "<div id='typeSelectorDiv' onchange='GraphVisInteraction.saveAllSelectorValues()'>"+
       "Select type: <select id='typeSelector'>"+
-      "<option value='?'>?</option>";
+      "<option value='?'>?</option>"; //Creates the type selector with its default value.
+  /*
+  Fills the type selector with values.
+  */
   for(var iterator=0; iterator < GraphVisInteraction.availableTypes.length; iterator++) {
     selectorInnerHTML += "<option value='"+GraphVisInteraction.availableTypes[iterator]+"'>"+
       GraphVisInteraction.availableTypes[iterator] + "</option>";
   }
   selectorInnerHTML += "</select></div>";
   selector.innerHTML = selectorInnerHTML;
+
   /*
   This is for updating the literals section.
   It would benefit from using a different structure later.
+  Note that the value selector for literals cannot be populated until the type of literal is selected.
   */
-
   var literals = _.keys(currentDatum.literals);
   for(var iterator=0; iterator<literals.length; iterator++) {
     var key = literals[iterator];
@@ -418,12 +433,12 @@ GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) 
   Create an empty spot to add new literals...
   */
   GraphVisInteraction.updateSelectorWithLiterals( " ", " ", literals.length);
-  GraphVisInteraction.selectorIterator= literals.length+1;
+  //GraphVisInteraction.selectorIterator= literals.length+1;
 
-  selector.innerHTML += "<button class='deleteButton' onClick='GraphVisInteraction.deleteSelectedNode()'>Delete</button>";
+  selector.innerHTML += "<button class='deleteButton' onClick='GraphVisInteraction.deleteSelectedNode()'>Delete</button>"; //Add the delete button.
 
   /*
-  I am unsure why these needs to be here to work ...
+  Sets the values for the different selectors.
   */
   GraphVisInteraction.setSelectorTo( document.getElementById("typeSelector"), currentDatum.type);
 
@@ -437,72 +452,97 @@ GraphVisInteraction.updateSelectorWithNodeSelectors = function ( currentDatum ) 
   }
 };
 
+/*
+Function to update the selectors for literals with which literal types are available.
+*/
 GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral, literalValue, iterator ) {
   var selector = document.getElementById("selectionForInteractive");
   /*
   Update the literal section.
   */
+  /* TODO, this should not happen, verify that it cannot.
   if(iterator===undefined) {
     iterator=GraphVisInteraction.selectorIterator;
     GraphVisInteraction.selectorIterator++;
   }
+  */
+  /*
+  Creates what will be added to element with ID "selectionForInteractive".
+  */
   var selectorInnerHTML = "<div>";
+  /*
+  When a literal is selected populate its value selector.
+  */
   selectorInnerHTML += "Select literal: <select id='literalSelector"+String(iterator)+"' onchange='GraphVisInteraction.updateSelectorWithLiteralValues("+String(iterator)+")'>";
   selectorInnerHTML += "<option value=''></option>";
+  /*
+  Populate with all available literal types.
+  */
   var availableLiterals = _.keys(GraphVisInteraction.availableLiterals);
   for(var innerIterator=0; innerIterator < availableLiterals.length; innerIterator++) {
     selectorInnerHTML += "<option value='"+availableLiterals[innerIterator]+"'>"+
     availableLiterals[innerIterator] + "</option>";
   }
+  /*
+  Ensure that when a literal type and literal value is selected it will immediately be saved.
+  */
   selectorInnerHTML += "</select><select id='literalValueSelector"+String(iterator)+"' onchange='GraphVisInteraction.saveAllSelectorValues()' ><option value=''></selector></div>";
-  selector.innerHTML += selectorInnerHTML;
+  selector.innerHTML += selectorInnerHTML; //Add to the element with ID "selectionForInteractive"
 };
 
 /*
-Convenience function that might not be all that convenient.
+This function updates the literal value selectors.
 */
-GraphVisInteraction.createSelectorWithIDAndValues = function( id, values ) {
-  var innerHTML = "<selector id='"+id+"'>";
-  for(var iterator = 0; iterator<values.length; iterator++) {
-    innerHTML += "<option value='"+values[iterator]+"'>"+values[iterator]+"</option>";
-  }
-  return innerHTML;
-};
-
 GraphVisInteraction.updateSelectorWithLiteralValues = function( iterator, literal ) {
-  var innerSelector = document.getElementById("literalValueSelector"+String(iterator));
-  if(literal===undefined) {
+  var innerSelector = document.getElementById("literalValueSelector"+String(iterator)); //Select the literal value selector that should be populated.
+  if(literal===undefined) { //If the function is called from a DOM element it will not provide the literal as an argument, instead it needs to be fetched.
     var outerSelector = document.getElementById("literalSelector"+String(iterator));
     literal = outerSelector.options[outerSelector.selectedIndex].text;
   }
   var innerElements = GraphVisInteraction.availableLiterals[literal];
-
+  /*
+  Populate the selector with all available values for the specified literal.
+  */
   var innerHTML = "<option value=''></option>";
   for(var iterator=0; iterator<innerElements.length; iterator++) {
     innerHTML += "<option value='"+innerElements[iterator]+"'>"+
       innerElements[iterator]+
       "</option>";
   }
-  innerSelector.innerHTML = innerHTML;
+  innerSelector.innerHTML = innerHTML; //Overwrite the previous value.
 };
 
+/*
+Convenience function...
+*/
 GraphVisInteraction.setSelectorTo = function( selector, value ) {
   selector.value=value;
 };
 
+/*
+This is to update the predicate selector. Additionally adds a delete button.
+*/
 GraphVisInteraction.updateSelectorWithPredicates = function( currentPredicate ) {
   var selector = document.getElementById("selectionForInteractive");
+  /*
+  Create the selector and ensure that as soon as a value is selected it is saved.
+  */
   var selectorInnerHTML = "Select predicate: <select id='literalOrPredicateSelector' onchange='GraphVisInteraction.saveAllSelectorValues()'>";
-  selectorInnerHTML += "<option value='?'>?</option>";
+  selectorInnerHTML += "<option value='?'>?</option>";//The "empty/none" option.
+  /*
+  Populate the list of available options.
+  */
   for(var iterator=0; iterator < GraphVisInteraction.availablePredicates.length; iterator++) {
     selectorInnerHTML += "<option value='"+GraphVisInteraction.availablePredicates[iterator]+"'>"+
       GraphVisInteraction.availablePredicates[iterator] + "</option>";
   }
-  selectorInnerHTML += "</select><div><button class='deleteButton' onClick='GraphVisInteraction.deleteSelectedLink()'>Delete</button></div>";
-  selector.innerHTML = selectorInnerHTML;
+  selectorInnerHTML += "</select><div><button class='deleteButton' onClick='GraphVisInteraction.deleteSelectedLink()'>Delete</button></div>"; //Add delete button
+  selector.innerHTML = selectorInnerHTML; //Update DOM.
 
   var typeSelector = document.getElementById("literalOrPredicateSelector");
-
+  /*
+  TODO replace by just setting value and verify that it works...
+  */
   for(var i = typeSelector.childNodes.length-1; i>=0; i--) {
     var currentText = typeSelector.childNodes[i].text;
     if(currentText==currentPredicate) {

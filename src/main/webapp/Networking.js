@@ -14,10 +14,12 @@ var connectTo = "http://localhost:8888/"
 /*
 Gets the JSON structured in the same manner as http://bl.ocks.org/mbostock/4062045 .
 */
+/*
 function orderJSONinOneGraph( returnedObject ) {
   visualizationNodes = returnedObject.nodes;
   visualizationLinks = returnedObject.links;
 }
+*/
 
 /*
 Handles refreshing the SPARQL representation.
