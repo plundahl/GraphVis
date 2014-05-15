@@ -21,6 +21,7 @@ public class Node {
   public String type;
   public String value;
   public List<String> literals = new ArrayList<String>();
+  transient public String sparqlID = null;
 
   Node(String tmp)
   {

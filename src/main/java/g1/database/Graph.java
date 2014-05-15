@@ -51,6 +51,15 @@ public class Graph {
     }
   }
 
+  public void addID(String node, String id)
+  {
+    if(nodeMap.containsKey(node))
+    {
+      int i = nodeMap.get(node);
+      nodes.get(i).sparqlID = id;
+    }
+  }
+
   //Sets the type of a node, if that node exists
   public void setType(String node, String type)
   {
