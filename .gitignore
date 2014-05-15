@@ -12,3 +12,4 @@ Thumbs.db
 # Maven target #
 ################
 target/*
+rdf/ont_student_inf.rdf
