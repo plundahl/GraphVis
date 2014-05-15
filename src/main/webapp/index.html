@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<meta charset="utf-8"/>
 <!--
-Copyright (c) 2014, Jonatan Asketorp, Jasmin Suljkic, Petter Lundahl, Johan Carlsson
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* Copyright (c) <YEAR>, <OWNER>
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <html lang="en">
     <!-- Style belonging to Interaction -->
@@ -17,39 +16,48 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
     <link href="../../vis/dist/vis.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
         #mygraph {
-            width: 100%;
-            height: 50%;
+            width: 1000px;
+            height: 500px;
             border: 1px solid lightgray;
         }
     </style>
     <!-- Style belonging to index.html -->
     <style type="text/css">
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
+
     </style>
 	<head>
 		<meta charset="utf-8">
-		<title>GraphVis</title>
+		<title>D3, Neo4j and Cypher</title>
 		<script type="text/javascript" src="d3.min.js"></script>
         <script type="text/javascript" src="underscore-min.js"></script>
         <script type="text/javascript" src="../../vis/dist/vis.js"></script>
 	</head>
-	<body onload="GraphVisInteraction.resize()">
+	<body>
+        This is a visualization of the results from your query.
         <div id="mygraph"></div>
-        <div id="backgroundForInteraction" title="Double-click on a empty spot to create a new node."></div>
+        Interact with the grey section to create a query.
+        <div id="backgroundForInteraction" class="background" title="Double-click on a empty spot to create a new node."></div>
         <div id="selectionForInteractive">
             Select a node or link to update this section.
         </div>
-        <button onClick="sendButtonEvent();GraphVisInteraction.deselectAllInteraction()" title="Press this button to send your query.">Send</button>
-        <textarea class="sparqlTextArea"id="SPARQLQueryTextArea" wrap=hard title="The SPARQL representation of your search will be shown here.">The SPARQL query will be shown here as text</textarea>
-        <button onClick="getSPARQLInterpretation()" title="Press this button to update the SPARQL representation of the visual query.">Refresh SPARQL</button>
-        <button onClick="sendSPARQLQuery()" title="Press this button to send a pure SPARQL query.">SPARQL query</button>
-        <textarea class="responseTextArea"id="SPARQLResponseTextArea" readonly="readonly" wrap=hard title="The response to your query will be shown here in plain text.">The response will be shown here as text</textarea>
-        <textarea class="queryTextArea" id="databaseOutput" readonly="readonly" wrap=hard title="This is what will be sent to the server.">This will be updated upon changes in the interaction area.</textarea>
+        <!--
+        <div id="selectionOfType">
+            Select type:
+            <select id="typeSelector">
+                <option value="none">Loading...</option>
+            </select>
+        </div>
+        <div id="selectionOfLiteralsOrPredicate">
+            Select a node or link for options:
+            <select id="literalOrPredicateSelector">
+                <option value="none">Loading...</option>
+            </select>
+        </div>
+        -->
+        <textarea id="databaseOutput" readonly=true wrap=hard title="This is what will be sent to the server.">This will be updated upon changes in the interaction area.</textarea>
+        <textarea id="SPARQLResponseTextArea" readonly=false wrap=hard title="The response to your query will be shown here in plain text.">The response will be shown here as text</textarea>
+        <textarea id="SPARQLQueryTextArea" readonly=false wrap=hard title="The SPARQL representation of your search will be shown here.">The SPARQL query will be shown here as text</textarea>
+        <button onClick="sendButtonEvent()" title="Press this button to send your query.">Send</button>
         <script type="text/javascript" src="Visualization.js"></script>
         <script type="text/javascript" src="Interaction.js"></script>
         <script type="text/javascript" src="Networking.js"></script>
@@ -62,14 +70,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
             getTypesForInteraction();
 
             function sendButtonEvent () {
+                    //sendToDatabase(databaseOutput[0][0].value);
                 sendToDatabase();
             }
-
-
-
-            window.onresize = function() {
-                GraphVisInteraction.resize();
-            };
 
         </script>
 	</body>

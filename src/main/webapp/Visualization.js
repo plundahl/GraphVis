@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014, Jonatan Asketorp, Jasmin Suljkic, Petter Lundahl, Johan Carlsson
+* Copyright (c) <YEAR>, <OWNER>
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -14,7 +14,7 @@ var nodeGroup = [];
 var nodes;
 var edges;
 var graph;
-var GraphVisVisualization = {};
+
 
 /*
 Updates the visualization once new information has arrived.
@@ -105,4 +105,3 @@ function implodeNodes(array,origin){
 	array = _.difference(array,origin); //Tar bort noden som klickades på.
 	nodes = _.difference(nodes, array); //Tar bort alla grannar till noden i miserables.
 }*/
-

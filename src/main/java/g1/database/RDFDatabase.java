@@ -1,15 +1,3 @@
-/*
-* Copyright (c) 2014, Jonatan Asketorp, Jasmin Suljkic, Petter Lundahl, Johan Carlsson 
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-*
-* 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-
 package g1.database;
 
 import java.io.*;
@@ -86,10 +74,7 @@ public class RDFDatabase {
     ResultSet results = runQuery(sparqlString);
     Graph resultGraph = buildAnswer(results, queryGraph);
     resultGraph.sparqlQuery = sparqlString;
-    closeQuery();
-
-    setLiterals(resultGraph);
-
+    closeQuery(); 
     //System.out.println(jsonToSPARQLResult(jsonString));
     resultGraph.sparqlResult = jsonToSPARQLResult(jsonString);
 
@@ -150,39 +135,6 @@ public class RDFDatabase {
     System.out.println("Worked");
     return result;
   }
-  
-    /*
-   * Query as a normal sparql query.
-   */
-  public String SPARQLToText(String sparqlString)
-  {
-    String result = "";
-    try{
-
-    sparqlString = prefix + sparqlString;
-
-    Query query = QueryFactory.create(sparqlString) ;
-
-    //Run the query
-    ResultSet results = runQuery(sparqlString);
-
-    //Output the result to a string.
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    //TODO: Choose a good format.
-    //ResultSetFormatter.outputAsRDF(out, "RDFJSON", results);
-    ResultSetFormatter.out(out, results, query);
-    result = new String(out.toString());
-    //Close this query. 
-    closeQuery();
-    }catch (QueryCancelledException e )
-    {
-      System.out.println("Timed out");
-      return "Query timed out";
-    }
-    System.out.println("Worked");
-    return result;
-  }
-
 
 
   //Takes a resultset and turns it into a graph.
@@ -206,7 +158,6 @@ public class RDFDatabase {
         {
           //TODO: only allow edges between diffrent nodes
           //if(! s.toString().equals(o.toString()))
-          //System.out.println(o.toString());
           if(l.hasType())
             result.addTripplet(s.asResource().getLocalName() , l.type , 
                 o.asResource().getLocalName());
@@ -217,9 +168,6 @@ public class RDFDatabase {
                 p.asResource().getLocalName(), 
                 o.asResource().getLocalName());
             //result.addTripplet(s.toString() , p.toString() , o.toString());
-
-          result.addID(s.asResource().getLocalName(),s.toString());
-          result.addID(o.asResource().getLocalName(),o.toString());
         }
         else
         {
@@ -234,32 +182,6 @@ public class RDFDatabase {
     }
     return result;
   }
-
-  private void setLiterals(Graph g)
-  {
-    for(int i = 0; i < g.nodes.size(); i++)
-    {
-      Node n = g.nodes.get(i);
-      String sparqlString = "SELECT ?node ?link WHERE { <" +n.sparqlID + "> ?link ?node. FILTER ( isLiteral(?node) ) }";
-      ResultSet results = runQuery(sparqlString);
-      try{
-        for ( ; results.hasNext() ; )
-        {
-          QuerySolution soln = results.nextSolution() ;
-          RDFNode node = soln.get("node") ;
-          RDFNode link = soln.get("link") ;
-
-          n.literals.add(link.toString());
-          n.literals.add(node.toString());
-        }
-
-        }catch (QueryCancelledException e )
-        {
-        }
-
-      }
-      closeQuery();
-    }
 
   //Takes a graph and builds the corresponding sparqleQuery
   private String buildQuery(Graph queryGraph)
@@ -283,18 +205,11 @@ public class RDFDatabase {
     }
     query += "WHERE { ";
 
-
-    int literalCounter = 0;
     for(int i = 0; i<queryGraph.nodes.size(); i++)
     {
       Node n = queryGraph.nodes.get(i);
       if(n.hasType())
         query += "?n" + i + " a <" + n.type + "> . ";
-      if(n.hasLit())
-        for(int j = 0; j < n.nrLit(); j++)
-        {
-          query += "?n" + i + " <" + n.getLitDomain(j) + "> \"" + n.getLit(j) + "\" .";
-        }
     }
     for(int i = 0; i<queryGraph.links.size(); i++)
     {
@@ -307,7 +222,7 @@ public class RDFDatabase {
 
 
     query += "FILTER ( ";
-
+    
     //TODO: added to deal with empty querys
     if(queryGraph.nodes.size() == 0)
       query += "!isLiteral(?empty)";
@@ -326,12 +241,12 @@ public class RDFDatabase {
   {
     ResultSet results = null;
     try{
-      queryString = prefix + queryString;
-      Query query = QueryFactory.create(queryString) ;
-      qexec = QueryExecutionFactory.create(query, model) ;
-      qexec.setTimeout(TIMEOUT);
-      //try {
-      results = qexec.execSelect() ;
+    queryString = prefix + queryString;
+    Query query = QueryFactory.create(queryString) ;
+    qexec = QueryExecutionFactory.create(query, model) ;
+    qexec.setTimeout(TIMEOUT);
+    //try {
+    results = qexec.execSelect() ;
     }catch (QueryCancelledException e)
     {
       results = null;
@@ -395,7 +310,7 @@ public class RDFDatabase {
 
     }
     String json = "{ \"literals\" : " + gson.toJson(literals) + "}";
-
+    
     closeQuery();
     return json;
   }
@@ -424,7 +339,7 @@ public class RDFDatabase {
     closeQuery();
     return resultStr;
   }
-
+  
   //Sets the types for all nodes in the graph
   private void setTypes(Graph g)
   {
@@ -453,46 +368,46 @@ public class RDFDatabase {
 
 
 
-//Old function, use jsonQuery
+  //Old function, use jsonQuery
 /*  public String queryDB(String queryString)
-    {
-//Size of the graph that will be returned in the test-environment.
-//Change here for diffrent size of graphs.
-//Graph g = new Graph(100);
-//queryString = g.toJson();
-//System.out.println(queryString);
+  {
+    //Size of the graph that will be returned in the test-environment.
+    //Change here for diffrent size of graphs.
+    //Graph g = new Graph(100);
+    //queryString = g.toJson();
+    //System.out.println(queryString);
 
 
-//System.out.println(jsonQuery(queryString));
-if(true)
-return jsonQuery(queryString);
+    //System.out.println(jsonQuery(queryString));
+    if(true)
+      return jsonQuery(queryString);
 
-queryString = 
-"PREFIX foo:<http://www.franz.com/lesmis#> " +
-"PREFIX dc:<http://purl.org/dc/elements/1.1/>" +
-"PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>" +
-"PREFIX rdfns:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
-"SELECT ?x ?y ?z WHERE {?x ?y ?z}";
+    queryString = 
+      "PREFIX foo:<http://www.franz.com/lesmis#> " +
+      "PREFIX dc:<http://purl.org/dc/elements/1.1/>" +
+      "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>" +
+      "PREFIX rdfns:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
+      "SELECT ?x ?y ?z WHERE {?x ?y ?z}";
 
-Graph resGraph = new Graph();
-Query query = QueryFactory.create(queryString) ;
-QueryExecution qexec = QueryExecutionFactory.create(query, model) ;
-try {
-ResultSet results = qexec.execSelect() ;
-for ( ; results.hasNext() ; )
-{
-QuerySolution soln = results.nextSolution() ;
-RDFNode x = soln.get("x") ;
-RDFNode y = soln.get("y") ;
-RDFNode z = soln.get("z") ;
-if (z.isURIResource())
-{
-//System.out.println(x.toString() + y.toString() + z.toString());
-resGraph.addTripplet(x.toString() , y.toString() , z.toString());
-}
-}
+    Graph resGraph = new Graph();
+    Query query = QueryFactory.create(queryString) ;
+    QueryExecution qexec = QueryExecutionFactory.create(query, model) ;
+    try {
+      ResultSet results = qexec.execSelect() ;
+      for ( ; results.hasNext() ; )
+      {
+        QuerySolution soln = results.nextSolution() ;
+        RDFNode x = soln.get("x") ;
+        RDFNode y = soln.get("y") ;
+        RDFNode z = soln.get("z") ;
+        if (z.isURIResource())
+        {
+          //System.out.println(x.toString() + y.toString() + z.toString());
+          resGraph.addTripplet(x.toString() , y.toString() , z.toString());
+        }
+      }
 
-//return "";
-return resGraph.toJson();
-} finally { qexec.close() ; }
-}*/
+      //return "";
+      return resGraph.toJson();
+    } finally { qexec.close() ; }
+  }*/

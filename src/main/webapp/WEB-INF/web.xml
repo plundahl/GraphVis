@@ -43,24 +43,4 @@
     <servlet-name>DataBaseRequestTypes</servlet-name>
     <url-pattern>/db-types/*</url-pattern>
   </servlet-mapping>
-  
-  <servlet>
-    <servlet-name>DataBaseRequestSPARQLInterpretation</servlet-name>
-    <servlet-class>g1.servlet.DataBaseRequestSPARQLInterpretation</servlet-class>
-    <load-on-startup>1</load-on-startup> 
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>DataBaseRequestSPARQLInterpretation</servlet-name>
-    <url-pattern>/db-sparqlinterpretation/*</url-pattern>
-  </servlet-mapping>
-  
-  <servlet>
-    <servlet-name>DataBaseRequestSPARQL</servlet-name>
-    <servlet-class>g1.servlet.DataBaseRequestSPARQL</servlet-class>
-    <load-on-startup>1</load-on-startup> 
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>DataBaseRequestSPARQL</servlet-name>
-    <url-pattern>/db-sparql/*</url-pattern>
-  </servlet-mapping>
 </web-app>
