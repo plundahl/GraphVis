@@ -75,15 +75,22 @@ This functions assumes that either all objects are for D3 or for vis.
 */
 function verifyJSONForVisjsNodes( returnedObject ) {
   var returnedNodes = returnedObject.nodes;
-  if(returnedNodes[0]!==null&&(!_.has(returnedNodes[0], "id"))) {
-    for(var iterator = 0; iterator<returnedNodes.length; iterator++) {
-      returnedNodes[iterator].id = iterator;
-      returnedNodes[iterator].label = returnedNodes[iterator].value; //This will write out the nodes label.
-      returnedNodes[iterator].title = returnedNodes[iterator].type;
-      returnedNodes[iterator].group = returnedNodes[iterator].type;
+  if(returnedNodes.length>0) {
+    if(returnedNodes[0]!==null&&(!_.has(returnedNodes[0], "id"))) {
+      for(var iterator = 0; iterator<returnedNodes.length; iterator++) {
+        returnedNodes[iterator].id = iterator;
+        returnedNodes[iterator].label = findAmongLiterals(returnedNodes[iterator].literals, "http://purl.org/dc/elements/1.1/title");
+        if(returnedNodes[iterator].label===undefined) {
+          /*
+          Wth... ?
+          */
+          returnedNodes[iterator].label = returnedNodes[iterator].value;
+        }
+        returnedNodes[iterator].title = returnedNodes[iterator].type;
+        returnedNodes[iterator].group = returnedNodes[iterator].label;
+      }
     }
   }
-
   return returnedNodes;
 }
 
@@ -93,22 +100,30 @@ This functions assumes that either all objects are for D3 or for vis.
 */
 function verifyJSONForVisjsEdges( returnedObject ) {
   var returnedEdges = returnedObject.links;
-
-  if(returnedEdges[0]!==null&&_.has(returnedEdges[0], "target")) {
-    for(var iterator = returnedEdges.length-1; iterator>=0; iterator--) {
-      returnedEdges[iterator].label = returnedEdges[iterator].type;	//This sets the label for displaying on the edges in the graph.
-      returnedEdges[iterator].from = returnedEdges[iterator].source;
-      delete returnedEdges[iterator].source;
-      returnedEdges[iterator].to = returnedEdges[iterator].target;
-      delete returnedEdges[iterator].target;
+  if(returnedEdges.length>0) {
+    if(returnedEdges[0]!==null&&_.has(returnedEdges[0], "target")) {
+      for(var iterator = returnedEdges.length-1; iterator>=0; iterator--) {
+        returnedEdges[iterator].label = returnedEdges[iterator].type;	//This sets the label for displaying on the edges in the graph.
+        returnedEdges[iterator].from = returnedEdges[iterator].source;
+        delete returnedEdges[iterator].source;
+        returnedEdges[iterator].to = returnedEdges[iterator].target;
+        delete returnedEdges[iterator].target;
+      }
     }
   }
-
   for(var iterator = returnedEdges.length-1; iterator>=0; iterator--) {
     delete returnedEdges[iterator].id;
   }
 
   return returnedEdges;
+}
+
+function findAmongLiterals( literalList, valueOf ) {
+  for(var iterator = literalList.length-2; iterator>=0; iterator-=2) {
+    if(literalList[iterator]==valueOf) {
+      return literalList[iterator+1];
+    }
+  }
 }
 
 /*
