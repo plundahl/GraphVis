@@ -9,47 +9,35 @@
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+package g1.servlet;
+ 
+import java.io.IOException;
+import java.util.*;
+import java.io.BufferedReader;
+import java.io.PrintWriter;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-package g1.database;
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import g1.database.RDFDatabase;
+import g1.database.RDFDatabaseSingleton;
+ 
+public class DataBaseRequestSPARQLInterpretation extends HttpServlet
+{
+    RDFDatabase db = RDFDatabaseSingleton.getInstance();
 
-public class Node {
-  public String type;
-  public String value;
-  public List<String> literals = new ArrayList<String>();
-  transient public String sparqlID = null;
-
-  Node(String tmp)
-  {
-    value = tmp;
-  }
-
-  public boolean hasType()
-  {
-    return !type.equals("?");
-  }
-
-  public boolean hasLit()
-  {
-    return !literals.isEmpty();
-  }
-
-  public int nrLit()
-  {
-    return literals.size()/2;
-  }
-
-  public String getLit(int i)
-  {
-    return literals.get(i*2+1);
-  } 
-  
-  public String getLitDomain(int i)
-  {
-    return literals.get(i*2);
-  } 
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    {
+        response.setContentType("text/html");
+        response.setStatus(HttpServletResponse.SC_OK);
+        
+       	String query = request.getReader().readLine();
+		
+        String resp = db.jsonToSPARQL(query);
+      	
+		PrintWriter pw = response.getWriter();
+		pw.println(resp);
+		pw.flush();
+    }
 }
