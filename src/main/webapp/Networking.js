@@ -9,7 +9,8 @@
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-var connectTo = "http://g1.bounceme.net:8888/"
+//var connectTo = "http://g1.bounceme.net:8888/";
+var connectTo = "http://localhost:8888/";
 
 /*
 Gets the JSON structured in the same manner as http://bl.ocks.org/mbostock/4062045 .
@@ -233,6 +234,7 @@ function getPredicatesForInteraction( responseObject ) {
     requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction);
   } else {
     GraphVisInteraction.availablePredicates = responseObject.edgetypes;
+    GraphVisInteraction.availablePredicates.sort();
   }
 }
 
@@ -241,6 +243,7 @@ function getTypesForInteraction( responseObject ) {
     requestFromDatabaseWithPrefix("db-types", null, getTypesForInteraction);
   } else {
     GraphVisInteraction.availableTypes = responseObject.types;
+    GraphVisInteraction.availableTypes.sort();
   }
 }
 
@@ -249,5 +252,13 @@ function getLiteralsForInteraction( responseObject ) {
     requestFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction);
   } else {
     GraphVisInteraction.availableLiterals = responseObject.literals;
+    sortForAllKeywords(GraphVisInteraction.availableLiterals);
+  }
+}
+
+function sortForAllKeywords( objectToSort ) {
+  var keywords = _.keys(objectToSort);
+  for(var iterator = 0; iterator < keywords.length; iterator++) {
+    objectToSort[keywords[iterator]].sort();
   }
 }
