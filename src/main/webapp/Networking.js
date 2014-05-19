@@ -12,33 +12,13 @@
 var connectTo = "http://localhost:8888/"
 
 /*
-Gets the JSON structured in the same manner as http://bl.ocks.org/mbostock/4062045 .
-*/
-/*
-function orderJSONinOneGraph( returnedObject ) {
-  visualizationNodes = returnedObject.nodes;
-  visualizationLinks = returnedObject.links;
-}
-*/
-
-/*
 Handles refreshing the SPARQL representation.
 */
 function getSPARQLInterpretation( responseObject ) {
   if(responseObject===undefined) {
     var message = document.getElementById("databaseOutput").value;
     if(message) {
-      var xhr_object = new XMLHttpRequest();
-      xhr_object.open("POST", connectTo+"db-sparqlinterpretation");
-      xhr_object.setRequestHeader('Accept-Language', 'sv-se');
-      xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
-      xhr_object.onreadystatechange = function() {
-      if (xhr_object.readyState == 4 && xhr_object.status == 200) {
-        var responseObject = xhr_object.responseText;
-        getSPARQLInterpretation(responseObject);
-      }
-    };
-    xhr_object.send(message);
+      requestTextFromDatabaseWithPrefix("db-sparqlinterpretation", message, getSPARQLInterpretation);
     }
   } else {
     document.getElementById("SPARQLQueryTextArea").value=responseObject;
@@ -52,17 +32,7 @@ function sendSPARQLQuery( responseObject ) {
   if(responseObject===undefined) {
     var message = document.getElementById("SPARQLQueryTextArea").value;
     if(message) {
-      var xhr_object = new XMLHttpRequest();
-      xhr_object.open("POST", connectTo+"db-sparql");
-      xhr_object.setRequestHeader('Accept-Language', 'sv-se');
-      xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
-      xhr_object.onreadystatechange = function() {
-        if (xhr_object.readyState == 4 && xhr_object.status == 200) {
-          var responseObject = xhr_object.responseText;
-          sendSPARQLQuery(responseObject);
-        }
-      };
-      xhr_object.send(message);
+      requestTextFromDatabaseWithPrefix("db-sparql", message, sendSPARQLQuery);
     }
   } else {
     document.getElementById("SPARQLResponseTextArea").value=responseObject;
@@ -200,6 +170,19 @@ function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
 	if (xhr_object.readyState == 4 && xhr_object.status == 200) {
     var responseObject = JSON.parse(xhr_object.responseText);
 		callingFunction(responseObject);
+	  }
+  };
+  xhr_object.send(message);
+}
+
+function requestTextFromDatabaseWithPrefix( prefix, message, callingFunction ) {
+  var xhr_object = new XMLHttpRequest();
+	xhr_object.open("POST", connectTo+prefix);
+	xhr_object.setRequestHeader('Accept-Language', 'sv-se');
+	xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
+	xhr_object.onreadystatechange = function() {
+	if (xhr_object.readyState == 4 && xhr_object.status == 200) {
+		callingFunction(xhr_object.responseText);
 	  }
   };
   xhr_object.send(message);
