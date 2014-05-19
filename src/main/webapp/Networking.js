@@ -162,30 +162,22 @@ function printJSONOutput () {
 /*
 Calls updateVisualization with the returned object.
 */
-function sendToDatabase() {
-  var xhr_object = null;
+function sendToDatabase( responseObject ) {
   var requestToDatabase = GraphVisInteraction.databaseOutput[0][0].value;
   /*
-  Haven't found any better solutions to check the output to database.
+  Haven't found any better solutions to verify that the output to the database is JSON.
   */
-  try {
-    JSON.parse(requestToDatabase);
-    var xhr_object = new XMLHttpRequest();
-		xhr_object.open("POST", connectTo+"db/jena");
-		xhr_object.setRequestHeader('Accept-Language', 'sv-se');
-		xhr_object.setRequestHeader('Accept', 'application/json; charset=UTF-8');
-		xhr_object.onreadystatechange = function() {
-			if (xhr_object.readyState == 4 && xhr_object.status == 200) {
-        var responseObject = JSON.parse(xhr_object.responseText);
+  if(typeof responseObject === "undefined") {
+    try {
+      JSON.parse(requestToDatabase);
+      requestFromDatabaseWithPrefix( "db/jena", requestToDatabase, sendToDatabase);
+    } catch(e) {
 
-				updateVisualization(responseObject);
-        updateTextAreaWithTextResponse(responseObject.sparqlResult);
-        updateTextAreaWithSPARQLQuery(responseObject.sparqlQuery);
-			}
-		};
-		xhr_object.send(requestToDatabase);
-  } catch(e) {
-
+    }
+  } else {
+    updateVisualization(responseObject);
+    updateTextAreaWithTextResponse(responseObject.sparqlResult);
+    updateTextAreaWithSPARQLQuery(responseObject.sparqlQuery);
   }
 }
 
