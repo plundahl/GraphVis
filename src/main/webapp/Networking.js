@@ -155,7 +155,7 @@ function sendToDatabase( responseObject ) {
 
 function updateTextAreaWithTextResponse( textResponse ) {
   var textArea = document.getElementById("SPARQLResponseTextArea");
-  textArea.value=responseObject;
+  textArea.value=textResponse;
   textArea.innerHTML = textResponse;
 }
 
