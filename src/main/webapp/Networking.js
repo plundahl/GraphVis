@@ -21,7 +21,8 @@ function getSPARQLInterpretation( responseObject ) {
       requestTextFromDatabaseWithPrefix("db-sparqlinterpretation", message, getSPARQLInterpretation);
     }
   } else {
-    document.getElementById("SPARQLQueryTextArea").value=responseObject;
+    updateTextAreaWithSPARQLQuery(responseObject);
+    //document.getElementById("SPARQLQueryTextArea").value=responseObject;
   }
 }
 
@@ -35,7 +36,8 @@ function sendSPARQLQuery( responseObject ) {
       requestTextFromDatabaseWithPrefix("db-sparql", message, sendSPARQLQuery);
     }
   } else {
-    document.getElementById("SPARQLResponseTextArea").value=responseObject;
+    updateTextAreaWithTextResponse(responseObject);
+    //document.getElementById("SPARQLResponseTextArea").value=responseObject;
   }
 }
 
@@ -153,12 +155,14 @@ function sendToDatabase( responseObject ) {
 
 function updateTextAreaWithTextResponse( textResponse ) {
   var textArea = document.getElementById("SPARQLResponseTextArea");
-  textArea.innerHTML = textResponse;
+  textArea.value=responseObject;
+  //textArea.innerHTML = textResponse;
 }
 
 function updateTextAreaWithSPARQLQuery( SPARQLText ) {
   var textArea = document.getElementById("SPARQLQueryTextArea");
-  textArea.innerHTML = SPARQLText;
+  textArea.value = SPARQLText;
+  //textArea.innerHTML = SPARQLText;
 }
 
 function requestObjectFromDatabaseWithPrefix( prefix, message, callingFunction ) {
