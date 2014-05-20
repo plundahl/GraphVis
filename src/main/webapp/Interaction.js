@@ -175,6 +175,9 @@ GraphVisInteraction.onMouseExitNode = function (datum) {
 Should be run each time something new is added to interaction. Manages all changes to links and edges and their labels.
 */
 GraphVisInteraction.restart = function() {
+  /*
+  TODO, this function can greatly benefit from being updated.
+  */
 	GraphVisInteraction.link = GraphVisInteraction.svg.selectAll(".link").data(GraphVisInteraction.links);
   GraphVisInteraction.linkLabels = GraphVisInteraction.linkLabels.data(GraphVisInteraction.links);
   /*
@@ -199,7 +202,7 @@ GraphVisInteraction.restart = function() {
   .attr("marker-end", "url(#end)")
   .attr("id", function(d,i) {return 'linkpath'+i;})
   .attr("internalInteractionID", function(d,i) {return i;})
-  .on("click", GraphVisInteraction.onClickInteractiveLink)
+  .on("click", GraphVisInteraction.onClickLink)
   .on("dblclick", function() {d3.event.stopPropagation();}) //Double clicking on a link should not create a new node
   .on("mouseover", function() {
     d3.select(this).attr("class", "linkHovered");
@@ -330,7 +333,7 @@ GraphVisInteraction.saveAllSelectorValues = function() {
 /*
 This function should be called to remove all the elements related to selecting values for nodes or edges.
 */
-GraphVisInteraction.deselectAllInteraction = function() {
+GraphVisInteraction.deselectAll = function() {
   /*
   Attempting to save all selectable values
   */
@@ -347,12 +350,15 @@ GraphVisInteraction.deselectAllInteraction = function() {
   GraphVisInteraction.updateSelectorWithDeselect(); //Update the selectors to show the default text.
   printJSONOutput(); //Update
 }
-GraphVisInteraction.svg.on("click", GraphVisInteraction.deselectAllInteraction); //If a single click on the background of the SVG is performed, call deselect.
+GraphVisInteraction.svg.on("click", GraphVisInteraction.deselectAll); //If a single click on the background of the SVG is performed, call deselect.
 
 /*
 This function is meant to be called to select a node. It has additional functionality to handle the creation of a link when two nodes are clicked in succession.
 */
 GraphVisInteraction.onClickAddLink = function (datum) {
+  /*
+  TODO, separate the node selection from the link creation.
+  */
 	if(d3.event.defaultPrevented) return;
   /*
   This is when a node gets selected...
@@ -361,7 +367,7 @@ GraphVisInteraction.onClickAddLink = function (datum) {
     /*
     Select the current node
     */
-    GraphVisInteraction.deselectAllInteraction();
+    GraphVisInteraction.deselectAll();
 		GraphVisInteraction.onClickAddLinkState=datum;
 		GraphVisInteraction.selectedNode = this;
 		d3
@@ -380,7 +386,7 @@ GraphVisInteraction.onClickAddLink = function (datum) {
       .style("fill", "black");
     GraphVisInteraction.selectedNode = null;
     GraphVisInteraction.onClickAddLinkState=null;
-    GraphVisInteraction.deselectAllInteraction();
+    GraphVisInteraction.deselectAll();
 	}
 	d3.event.stopPropagation();
 }
@@ -388,8 +394,8 @@ GraphVisInteraction.onClickAddLink = function (datum) {
 /*
 This function is meant to handle click events on links.
 */
-GraphVisInteraction.onClickInteractiveLink = function (datum) {
-  GraphVisInteraction.deselectAllInteraction(); //Deselect if anything is selected
+GraphVisInteraction.onClickLink = function (datum) {
+  GraphVisInteraction.deselectAll(); //Deselect if anything is selected
   GraphVisInteraction.linkThatIsSelected = this; //Make the selected link the linkThatIsSelected
   d3.select(this).attr("class", "linkSelected"); //Change class of link to change the graphics
   GraphVisInteraction.updateSelectorWithPredicates( datum.type ); //Update selectors to correspond to the now selected link.
@@ -457,15 +463,6 @@ Function to update the selectors for literals with which literal types are avail
 */
 GraphVisInteraction.updateSelectorWithLiterals = function( currentLiteral, literalValue, iterator ) {
   var selector = document.getElementById("selectionForInteractive");
-  /*
-  Update the literal section.
-  */
-  /* TODO, this should not happen, verify that it cannot.
-  if(iterator===undefined) {
-    iterator=GraphVisInteraction.selectorIterator;
-    GraphVisInteraction.selectorIterator++;
-  }
-  */
   /*
   Creates what will be added to element with ID "selectionForInteractive".
   */
@@ -568,7 +565,7 @@ GraphVisInteraction.deleteSelectedNode = function() {
     }
   }
   GraphVisInteraction.nodesInteraction.splice(GraphVisInteraction.selectedNode.__data__.index, 1); //Delete the node
-  GraphVisInteraction.deselectAllInteraction(); //Deselect all elements
+  GraphVisInteraction.deselectAll(); //Deselect all elements
   GraphVisInteraction.restart(); //Restart the rendering of the interaction
 };
 
@@ -579,7 +576,7 @@ GraphVisInteraction.deleteSelectedLink = function() {
   var link = GraphVisInteraction.linkThatIsSelected.__data__;
   var index = _.indexOf(GraphVisInteraction.links, link);
   GraphVisInteraction.links.splice(index, 1); //Removes the selected link
-  GraphVisInteraction.deselectAllInteraction(); //Deselect all elements
+  GraphVisInteraction.deselectAll(); //Deselect all elements
   GraphVisInteraction.restart(); //Restarts interaction rendering
 }
 
@@ -600,7 +597,7 @@ GraphVisInteraction.updateNodeWithSelectedValues = function ( datum ) {
   datum.literals = new Object(); //"Remove" any previous values
   for(var iterator = selectables.length-2; iterator>0; iterator--) { //Check all selectors that is not typeSelector
     var literalHTML = selectables[iterator].childNodes;
-    var potentialKey = literalHTML[1][literalHTML[1].selectedIndex].text; //Get the key of the seöector
+    var potentialKey = literalHTML[1][literalHTML[1].selectedIndex].text; //Get the key of the selector
     var potentialValue = literalHTML[2][literalHTML[2].selectedIndex].text; //Get the value of the selector
     if(potentialKey.length!==0&&potentialValue.length!==0) { //If they have a value
       datum.literals[potentialKey] = potentialValue; //Update the node with the found literal.

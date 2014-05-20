@@ -140,7 +140,7 @@ function sendToDatabase( responseObject ) {
   if(typeof responseObject === "undefined") {
     try {
       JSON.parse(requestToDatabase);
-      requestFromDatabaseWithPrefix( "db/jena", requestToDatabase, sendToDatabase);
+      requestObjectFromDatabaseWithPrefix( "db/jena", requestToDatabase, sendToDatabase);
     } catch(e) {
 
     }
@@ -161,7 +161,7 @@ function updateTextAreaWithSPARQLQuery( SPARQLText ) {
   textArea.innerHTML = SPARQLText;
 }
 
-function requestFromDatabaseWithPrefix( prefix, message, callingFunction ) {
+function requestObjectFromDatabaseWithPrefix( prefix, message, callingFunction ) {
   var xhr_object = new XMLHttpRequest();
 	xhr_object.open("POST", connectTo+prefix);
 	xhr_object.setRequestHeader('Accept-Language', 'sv-se');
@@ -190,7 +190,7 @@ function requestTextFromDatabaseWithPrefix( prefix, message, callingFunction ) {
 
 function getPredicatesForInteraction( responseObject ) {
   if(responseObject===undefined) {
-    requestFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction);
+    requestObjectFromDatabaseWithPrefix("db-predicates", null, getPredicatesForInteraction);
   } else {
     GraphVisInteraction.availablePredicates = responseObject.edgetypes;
   }
@@ -198,7 +198,7 @@ function getPredicatesForInteraction( responseObject ) {
 
 function getTypesForInteraction( responseObject ) {
   if(responseObject===undefined) {
-    requestFromDatabaseWithPrefix("db-types", null, getTypesForInteraction);
+    requestObjectFromDatabaseWithPrefix("db-types", null, getTypesForInteraction);
   } else {
     GraphVisInteraction.availableTypes = responseObject.types;
   }
@@ -206,7 +206,7 @@ function getTypesForInteraction( responseObject ) {
 
 function getLiteralsForInteraction( responseObject ) {
   if(responseObject===undefined) {
-    requestFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction);
+    requestObjectFromDatabaseWithPrefix("db-literals", null, getLiteralsForInteraction);
   } else {
     GraphVisInteraction.availableLiterals = responseObject.literals;
   }
