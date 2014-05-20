@@ -156,13 +156,13 @@ function sendToDatabase( responseObject ) {
 function updateTextAreaWithTextResponse( textResponse ) {
   var textArea = document.getElementById("SPARQLResponseTextArea");
   textArea.value=responseObject;
-  //textArea.innerHTML = textResponse;
+  textArea.innerHTML = textResponse;
 }
 
 function updateTextAreaWithSPARQLQuery( SPARQLText ) {
   var textArea = document.getElementById("SPARQLQueryTextArea");
   textArea.value = SPARQLText;
-  //textArea.innerHTML = SPARQLText;
+  textArea.innerHTML = SPARQLText;
 }
 
 function requestObjectFromDatabaseWithPrefix( prefix, message, callingFunction ) {
