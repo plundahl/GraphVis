@@ -24,8 +24,8 @@ import g1.database.RDFDatabase;
 import g1.database.RDFDatabaseSingleton;
 
 /* This class defines actions to be taken when a database request is caught via a HTTP POST
-* call. This class extracts the request string from the POST request, calls an apropriate
-* method in the Database instance and returns the result as a response to the POST request.
+* call. This class calls an appropriate method in the Database instance and returns the result
+* as a response to the POST request.
 *
 * This class serves to forward information about the types that exist in the database.
 */ 

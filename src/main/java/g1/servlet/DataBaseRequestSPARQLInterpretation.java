@@ -28,7 +28,7 @@ import g1.database.RDFDatabaseSingleton;
 * method in the Database instance and returns the result as a response to the POST request.
 *
 * This class serves to provide communication with database for SPARQL interpretation of 
-* queryies.
+* queries.
 */ 
 public class DataBaseRequestSPARQLInterpretation extends HttpServlet
 {
