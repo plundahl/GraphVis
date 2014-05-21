@@ -10,6 +10,11 @@
 */
 
 
+/*
+ * This class is used for representing nodes in our java-graph.
+ * It is also used for converting from/to json
+ */
+
 package g1.database;
 import java.io.*;
 import java.util.ArrayList;
@@ -28,26 +33,42 @@ public class Node {
     value = tmp;
   }
 
+  /* 
+   * Returns true if the node has a type,
+   * used when creating a sparql-query from a graph.
+   */
   public boolean hasType()
   {
     return !type.equals("?");
   }
 
+  /*
+   * Same as hasType() but for literals
+   */
   public boolean hasLit()
   {
     return !literals.isEmpty();
   }
 
+  /*
+   * Returns the number of literals this node has
+   */
   public int nrLit()
   {
     return literals.size()/2;
   }
 
+  /*
+   * Returns the i:th literal.
+   */
   public String getLit(int i)
   {
     return literals.get(i*2+1);
   } 
   
+  /*
+   * Returns the type of the i:th literal.
+   */
   public String getLitDomain(int i)
   {
     return literals.get(i*2);

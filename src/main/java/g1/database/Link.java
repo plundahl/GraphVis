@@ -10,6 +10,11 @@
 */
 
 
+/*
+ * This class is used for representing edges in our java-graph.
+ * It is also used for converting from/to json.
+ */
+
 package g1.database;
 import java.io.*;
 import java.util.ArrayList;
@@ -20,6 +25,10 @@ public class Link {
   public int source;
   public int target;
   
+  /*
+   * Check if the edge has a type.
+   * Used when converting a graph to a sparql-query.
+   */
   public boolean hasType()
   {
     return !type.equals("?");

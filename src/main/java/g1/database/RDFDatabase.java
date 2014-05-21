@@ -1,14 +1,17 @@
 /*
-* Copyright (c) 2014, Jonatan Asketorp, Jasmin Suljkic, Petter Lundahl, Johan Carlsson 
-* All rights reserved.
-*
-* Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-*
-* 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ * Copyright (c) 2014, Jonatan Asketorp, Jasmin Suljkic, Petter Lundahl, Johan Carlsson 
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 
+/*
+ * Main class for querying and handeling the database.
+ */
 
 package g1.database;
 
@@ -36,10 +39,13 @@ import com.google.gson.Gson;
 
 public class RDFDatabase {
 
+  //TODO: Change static timeout to a dynamic timout.
   private int TIMEOUT = 2000;
 
   private static Model model;
   private QueryExecution qexec;
+
+  //TODO: Make this dynamic and load it from a config file.
   private String prefix = 
     "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "+
     "PREFIX owl: <http://www.w3.org/2002/07/owl#> "+
@@ -49,7 +55,7 @@ public class RDFDatabase {
 
 
   /*
-   * This is how you creat a database interface, inputFile should be the location of your .rdf file.
+   * This is how you start the database interface, inputFile should be the location of your .rdf file.
    */
   public RDFDatabase(String inputFile)
   {        
@@ -90,20 +96,18 @@ public class RDFDatabase {
 
     setLiterals(resultGraph);
 
-    //System.out.println(jsonToSPARQLResult(jsonString));
     resultGraph.sparqlResult = jsonToSPARQLResult(jsonString);
 
     //Has to be called to close the query.
     closeQuery();
 
-   //Set the types in the graph
+    //Set the types in the graph
     setTypes(resultGraph); 
 
     String json = gson.toJson(resultGraph);
-    System.out.println("Nr of links in result: " + resultGraph.links.size());
     return json;
   }
-  
+
   /*
    * Take a json-graph and return the sparql-request.
    */
@@ -114,7 +118,7 @@ public class RDFDatabase {
     String sparqlString = buildQuery(queryGraph);
     return sparqlString;
   }
-  
+
   /*
    * Get the sparql-result as text not as a graph.
    */
@@ -122,112 +126,107 @@ public class RDFDatabase {
   {
     String result = "";
     try{
-    //Create the sparql-query
-    Gson gson = new Gson();
-    Graph queryGraph = gson.fromJson(jsonString, Graph.class);
-    String sparqlString = buildQuery(queryGraph);
+      //Create the sparql-query
+      Gson gson = new Gson();
+      Graph queryGraph = gson.fromJson(jsonString, Graph.class);
+      String sparqlString = buildQuery(queryGraph);
 
-    sparqlString = prefix + sparqlString;
+      sparqlString = prefix + sparqlString;
 
-    Query query = QueryFactory.create(sparqlString) ;
+      Query query = QueryFactory.create(sparqlString) ;
 
-    //Run the query
-    ResultSet results = runQuery(sparqlString);
+      //Run the query
+      ResultSet results = runQuery(sparqlString);
 
-    //Output the result to a string.
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    //TODO: Choose a good format.
-    //ResultSetFormatter.outputAsRDF(out, "RDFJSON", results);
-    ResultSetFormatter.out(out, results, query);
-    result = new String(out.toString());
-    //Close this query. 
-    closeQuery();
+      //Output the result to a string.
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      //TODO: Choose a good format.
+      ResultSetFormatter.out(out, results, query);
+      result = new String(out.toString());
+      //Close this query. 
+      closeQuery();
     }catch (QueryCancelledException e )
     {
       System.out.println("Timed out");
       return "Query timed out";
     }
-    System.out.println("Worked");
     return result;
   }
-  
-    /*
+
+  /*
    * Query as a normal sparql query.
+   * Returns the result as a text.
    */
   public String SPARQLToText(String sparqlString)
   {
     String result = "";
     try{
 
-    sparqlString = prefix + sparqlString;
+      sparqlString = prefix + sparqlString;
 
-    Query query = QueryFactory.create(sparqlString) ;
+      Query query = QueryFactory.create(sparqlString) ;
 
-    //Run the query
-    ResultSet results = runQuery(sparqlString);
+      //Run the query
+      ResultSet results = runQuery(sparqlString);
 
-    //Output the result to a string.
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    //TODO: Choose a good format.
-    //ResultSetFormatter.outputAsRDF(out, "RDFJSON", results);
-    ResultSetFormatter.out(out, results, query);
-    result = new String(out.toString());
-    //Close this query. 
-    closeQuery();
+      //Output the result to a string.
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      //TODO: Choose a good format.
+      //ResultSetFormatter.outputAsRDF(out, "RDFJSON", results);
+      ResultSetFormatter.out(out, results, query);
+      result = new String(out.toString());
+      //Close this query. 
+      closeQuery();
     }catch (QueryCancelledException e )
     {
       System.out.println("Timed out");
       return "Query timed out";
     }
-    System.out.println("Worked");
     return result;
   }
 
 
 
-  //Takes a resultset and turns it into a graph.
+  /*
+   * Takes a resultset and the coresponding graphQuery and turns it into a result-graph.
+   */
   private Graph buildAnswer(ResultSet results, Graph queryGraph)
   {
     Graph result = new Graph();
     //TODO If it's null it means the query timed out.
     try{
-    for ( ; results.hasNext() ; )
-    {
-      QuerySolution soln = results.nextSolution() ;
-      for(int i = 0; i<queryGraph.links.size(); i++)
+      for ( ; results.hasNext() ; )
       {
-        Link l = queryGraph.links.get(i);
-        RDFNode s = soln.get("n"+l.source) ;
-        RDFNode p = null;
-        if(!l.hasType())
-          p = soln.get("l"+i) ;
-        RDFNode o = soln.get("n"+l.target) ;
-        if (true || o.isURIResource())
+        QuerySolution soln = results.nextSolution() ;
+        for(int i = 0; i<queryGraph.links.size(); i++)
         {
-          //TODO: only allow edges between diffrent nodes
-          //if(! s.toString().equals(o.toString()))
-          //System.out.println(o.toString());
-          if(l.hasType())
-            result.addTripplet(s.asResource().getLocalName() , l.type , 
-                o.asResource().getLocalName());
-            //TODO: Make better use of prefixes.
-            //result.addTripplet(s.toString() , l.type , o.toString());
-          else  
-            result.addTripplet(s.asResource().getLocalName() , 
-                p.asResource().getLocalName(), 
-                o.asResource().getLocalName());
-            //result.addTripplet(s.toString() , p.toString() , o.toString());
+          Link l = queryGraph.links.get(i);
+          RDFNode s = soln.get("n"+l.source) ;
+          RDFNode p = null;
+          if(!l.hasType())
+            p = soln.get("l"+i) ;
+          RDFNode o = soln.get("n"+l.target) ;
+          if (o.isURIResource())
+          {
+            //TODO: only allow edges between diffrent nodes
+            if(l.hasType())
+              result.addTripplet(s.asResource().getLocalName() , l.type , 
+                  o.asResource().getLocalName());
+            else  
+              result.addTripplet(s.asResource().getLocalName() , 
+                  p.asResource().getLocalName(), 
+                  o.asResource().getLocalName());
 
-          result.addID(s.asResource().getLocalName(),s.toString());
-          result.addID(o.asResource().getLocalName(),o.toString());
-        }
-        else
-        {
-          //TODO: Add the value to the node, not as a edge
-        }
+            result.addID(s.asResource().getLocalName(),s.toString());
+            result.addID(o.asResource().getLocalName(),o.toString());
+          }
+          else
+          {
+            //TODO: Add the value to the node, not as a edge
+          }
 
+        }
       }
-    }
     }catch (QueryCancelledException e )
     {
       result = new Graph();
@@ -235,8 +234,13 @@ public class RDFDatabase {
     return result;
   }
 
+  /*
+   * Add literals to a result-graph.
+   * TODO: Do this in the search, not after. This is bad for preformace.
+   */
   private void setLiterals(Graph g)
   {
+    //Run this query for every node in the graph, and add all literals to that node.
     for(int i = 0; i < g.nodes.size(); i++)
     {
       Node n = g.nodes.get(i);
@@ -253,15 +257,17 @@ public class RDFDatabase {
           n.literals.add(node.toString());
         }
 
-        }catch (QueryCancelledException e )
-        {
-        }
-
+      }catch (QueryCancelledException e )
+      {
       }
-      closeQuery();
-    }
 
-  //Takes a graph and builds the corresponding sparqleQuery
+    }
+    closeQuery();
+  }
+
+  /*
+   * Takes a java graph and builds the corresponding sparqleQuery
+   */
   private String buildQuery(Graph queryGraph)
   {
 
@@ -269,13 +275,16 @@ public class RDFDatabase {
 
     String query = "SELECT ";
 
-    //TODO: added to deal with empty querys
+    //TODO: Decide what to do with empty querys.
     if(queryGraph.nodes.size() == 0)
       query += "?empty ";
+
+    //Loops through all nodes in the graph and adds them to the query.
     for(int i = 0; i<queryGraph.nodes.size(); i++)
     {
       query += "?n"+i+" ";
     }
+    //Loops through all edges in the graph and adds them to the query.
     for(int i = 0; i<queryGraph.links.size(); i++)
     {
       if(!queryGraph.links.get(i).hasType())
@@ -283,8 +292,7 @@ public class RDFDatabase {
     }
     query += "WHERE { ";
 
-
-    int literalCounter = 0;
+    //Loops through all nodes in the graph and adds the literal values specified in the search.
     for(int i = 0; i<queryGraph.nodes.size(); i++)
     {
       Node n = queryGraph.nodes.get(i);
@@ -296,6 +304,9 @@ public class RDFDatabase {
           query += "?n" + i + " <" + n.getLitDomain(j) + "> \"" + n.getLit(j) + "\" .";
         }
     }
+
+    //Creats the WHERE part of the query, and eighter makes a row with unknown edge-type,
+    //or with the edge-type specified in the search.
     for(int i = 0; i<queryGraph.links.size(); i++)
     {
       Link l = queryGraph.links.get(i);
@@ -311,6 +322,9 @@ public class RDFDatabase {
     //TODO: added to deal with empty querys
     if(queryGraph.nodes.size() == 0)
       query += "!isLiteral(?empty)";
+
+    //TODO: This makes sure there will be no literals in the search result,
+    //but a better way would be to save them and use them directly.
     for(int i = 0; i<queryGraph.nodes.size(); i++)
     {
       if( i > 0)
@@ -321,7 +335,9 @@ public class RDFDatabase {
     return query;
   }
 
-  //Used for running querys
+  /*
+   * This function is running a sparql-query, and returns the ResultSet.
+   */
   private ResultSet runQuery(String queryString)
   {
     ResultSet results = null;
@@ -330,22 +346,25 @@ public class RDFDatabase {
       Query query = QueryFactory.create(queryString) ;
       qexec = QueryExecutionFactory.create(query, model) ;
       qexec.setTimeout(TIMEOUT);
-      //try {
       results = qexec.execSelect() ;
     }catch (QueryCancelledException e)
     {
       results = null;
     }
     return results;
-    //} finally { qexec.close() ; }
   }
-  //Must be used after runQuery;
+
+  //TODO: This must be used after runQuery
+  //try to build this into runQuery instead of calling it afterwards.
   private void closeQuery()
   {
     qexec.close();
   }
 
-  //Returns all the possible 'edges' in the graph.
+  /*
+   * Returns all the possible 'edges' in the graph.
+   * this is used for the dropdown menu in the GUI.
+   */
   public synchronized String getPredicates()
   {
     String queryString = prefix +
@@ -360,8 +379,6 @@ public class RDFDatabase {
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("p");
       Resource test = soln.getResource("p");
-      System.out.println(test.getNameSpace());
-      System.out.println(test.getLocalName());
       resultStr += "\"" + lit.toString() + "\"";
 
     }
@@ -371,7 +388,10 @@ public class RDFDatabase {
   }
 
 
-  //Returns all the Literals in the RDF-data as a JSON map.
+  /*
+   * Returns all the Literals in the RDF-data as a JSON map.
+   * This is used for one of the dropdown menus in the GUI.
+   */
   public synchronized String getLiterals()
   {
     Map<String, List<String>> literals = new HashMap<String, List<String>>();
@@ -400,7 +420,10 @@ public class RDFDatabase {
     return json;
   }
 
-  //Returns all rdf:type that is possible for every node to have in the graph.
+  /*
+   * Returns all rdf:type that is possible for every node to have in the graph.
+   * This is used for one of the dropdown menus in the GUI.
+   */
   public synchronized String getTypes()
   {
     String queryString =
@@ -414,9 +437,6 @@ public class RDFDatabase {
         resultStr += ",";
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("type");
-      //Resource test = soln.getResource("type");
-      //System.out.println(test.getNameSpace());
-      //System.out.println(test.getLocalName());
       resultStr += "\"" + lit.toString() + "\"";
 
     }
@@ -425,7 +445,12 @@ public class RDFDatabase {
     return resultStr;
   }
 
-  //Sets the types for all nodes in the graph
+
+  /*
+   * Takes a result-graph and adds a type to every node that has one.
+   * TODO: Allow more then one type per node.
+   * TODO: Do this when you run a query, not afterwards.
+   */
   private void setTypes(Graph g)
   {
     String queryString =
@@ -437,62 +462,8 @@ public class RDFDatabase {
       QuerySolution soln = results.nextSolution() ;
       RDFNode lit = soln.get("type");
       RDFNode node = soln.get("node");
-      //TODO quick fix for easy to read output.
-      //g.setType(node.toString(),lit.toString());
       g.setType(node.asResource().getLocalName(), lit.asResource().getLocalName());
     }
     closeQuery();
   }
 }
-
-
-
-
-
-
-
-
-
-//Old function, use jsonQuery
-/*  public String queryDB(String queryString)
-    {
-//Size of the graph that will be returned in the test-environment.
-//Change here for diffrent size of graphs.
-//Graph g = new Graph(100);
-//queryString = g.toJson();
-//System.out.println(queryString);
-
-
-//System.out.println(jsonQuery(queryString));
-if(true)
-return jsonQuery(queryString);
-
-queryString = 
-"PREFIX foo:<http://www.franz.com/lesmis#> " +
-"PREFIX dc:<http://purl.org/dc/elements/1.1/>" +
-"PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>" +
-"PREFIX rdfns:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>" +
-"SELECT ?x ?y ?z WHERE {?x ?y ?z}";
-
-Graph resGraph = new Graph();
-Query query = QueryFactory.create(queryString) ;
-QueryExecution qexec = QueryExecutionFactory.create(query, model) ;
-try {
-ResultSet results = qexec.execSelect() ;
-for ( ; results.hasNext() ; )
-{
-QuerySolution soln = results.nextSolution() ;
-RDFNode x = soln.get("x") ;
-RDFNode y = soln.get("y") ;
-RDFNode z = soln.get("z") ;
-if (z.isURIResource())
-{
-//System.out.println(x.toString() + y.toString() + z.toString());
-resGraph.addTripplet(x.toString() , y.toString() , z.toString());
-}
-}
-
-//return "";
-return resGraph.toJson();
-} finally { qexec.close() ; }
-}*/

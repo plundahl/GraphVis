@@ -10,6 +10,10 @@
 */
 
 
+/*
+ * This class is used for representing the graph as a java-object 
+ * and used when converting from/to json
+ */
 
 package g1.database;
 import java.io.*;
@@ -33,11 +37,16 @@ public class Graph {
   {
   }
 
+  /* 
+   * Adds rdf/graph triplets to the graph, node - edge - node
+   */
   public void addTripplet(String first, String link, String last)
   {
     String linkKey = first+link+last;
+    //If the path is already in the graph, dont add it.
     if(!linkMap.containsKey(linkKey))
     {
+      //Check if the nodes are new, if not dont add them.
       if(!nodeMap.containsKey(first))
       {
         addNode(first);
@@ -46,21 +55,17 @@ public class Graph {
       {
         addNode(last);
       }
+      //Connect the nodes with the specified edge.
       linkMap.put(linkKey,nrOfNodes);
       addLink(nodeMap.get(first),nodeMap.get(last), link); 
     }
   }
 
-  public void addID(String node, String id)
-  {
-    if(nodeMap.containsKey(node))
-    {
-      int i = nodeMap.get(node);
-      nodes.get(i).sparqlID = id;
-    }
-  }
 
-  //Sets the type of a node, if that node exists
+  /*
+   * Sets the type of a node, if that node exists.
+   * TODO: Allow each node to have more then one type.
+   */
   public void setType(String node, String type)
   {
     if(nodeMap.containsKey(node))
@@ -70,6 +75,9 @@ public class Graph {
     }
   }
   
+  /*
+   * Adds a edge to the graph.
+   */
   private void addLink(int first, int last)
   {
     Link l = new Link();
@@ -78,6 +86,9 @@ public class Graph {
     links.add(l);
   }
 
+  /*
+   * Adds a link with it's type to the graph.
+   */
   private void addLink(int first, int last, String type)
   {
     Link l = new Link();
@@ -87,6 +98,9 @@ public class Graph {
     links.add(l);
   }
 
+  /*
+   * Adds a node to the graph.
+   */
   void addNode(String tmp)
   {
     Node n = new Node(tmp);
@@ -94,34 +108,17 @@ public class Graph {
     nodeMap.put(tmp,nrOfNodes);
     nrOfNodes++;
   }
-
-  //Function for converting the graph to JSON output.
-  String toJson()
+  
+  /*
+   * Ths function is used to save the whole rdf-path for the node.
+   */
+  public void addID(String node, String id)
   {
-    String result = "{\"nodes\":[";
-    //add all nodes:
-    for(int i = 0; i < nodes.size(); i++)
+    if(nodeMap.containsKey(node))
     {
-      if(i>0)
-        result+=",";
-      result+="{}";
+      int i = nodeMap.get(node);
+      nodes.get(i).sparqlID = id;
     }
-
-    result += "],\"links\":[";
-    //add all links:
-    for(int i = 0; i < links.size(); i++)
-    {
-      Link l = (Link)links.get(i);
-      if(i>0)
-        result+=",";
-      result+="{\"source\":";
-      result+=l.source;
-      result+=",\"target\":";
-      result+=l.target;
-      result+="}";
-    }
-
-    result += "]}";
-    return result;
   }
+
 }
