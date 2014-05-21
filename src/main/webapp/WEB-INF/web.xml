@@ -4,6 +4,12 @@
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" 
    version="2.5">
+<!-- This XML is a configuration for the Jetty servlet mappings. 
+   Information such as the servlet class location and the servlet
+   URL mappings are set here. A call via a HTTP request on a 
+   mapped URL will invoke the coresponding class for handling of 
+   this request. -->
+
   <servlet>
     <servlet-name>DataBaseRequest</servlet-name>
     <servlet-class>g1.servlet.DataBaseRequest</servlet-class>

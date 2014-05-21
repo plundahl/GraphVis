@@ -22,20 +22,28 @@ import javax.servlet.http.HttpServletResponse;
 
 import g1.database.RDFDatabase;
 import g1.database.RDFDatabaseSingleton;
- 
+
+/* This class defines actions to be taken when a database request is caught via a HTTP POST
+* call. This class extracts the request string from the POST request, calls an apropriate
+* method in the Database instance and returns the result as a response to the POST request.
+* 
+* This class serves to forward information about the predicates that exist in the database.
+*/ 
 public class DataBaseRequestPredicates extends HttpServlet
 {
-    RDFDatabase db = RDFDatabaseSingleton.getInstance();
+   RDFDatabase db = RDFDatabaseSingleton.getInstance();//Get a reference to running Database
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);	
-		//SEND query TO DB & GET resp
-		String resp = db.getPredicates();
-		//Return resp as response 
-		PrintWriter pw = response.getWriter();
-		pw.println(resp);
-		pw.flush();
-    }
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+   {
+      response.setContentType("text/html");
+      response.setStatus(HttpServletResponse.SC_OK);	
+
+      //Get the predicates from the Database
+      String resp = db.getPredicates();
+
+	   //Return resp as response to the POST request 
+      PrintWriter pw = response.getWriter();
+      pw.println(resp);
+      pw.flush();
+   }
 }

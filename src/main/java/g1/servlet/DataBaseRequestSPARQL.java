@@ -22,20 +22,30 @@ import javax.servlet.http.HttpServletResponse;
 
 import g1.database.RDFDatabase;
 import g1.database.RDFDatabaseSingleton;
- 
+
+/* This class defines actions to be taken when a database request is caught via a HTTP POST
+* call. This class extracts the request string from the POST request, calls an apropriate
+* method in the Database instance and returns the result as a response to the POST request.
+*
+* This class serves to provide communication with database for SPARQL querying abilities.
+*/ 
 public class DataBaseRequestSPARQL extends HttpServlet
 {
-    RDFDatabase db = RDFDatabaseSingleton.getInstance();
+    RDFDatabase db = RDFDatabaseSingleton.getInstance();//Get a reference to running Database
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);
-        
-       	String query = request.getReader().readLine();
-		
-        String resp = db.SPARQLToText(query);
-      	
+	//The following code defines the actions taken upon a POST request
+   protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+   {
+      response.setContentType("text/html");
+      response.setStatus(HttpServletResponse.SC_OK);
+
+      //Extract Query string from request
+      String query = request.getReader().readLine();
+
+      //Invoke SPARQL query method in the database with query as input and save the response
+      String resp = db.SPARQLToText(query);
+      
+	   //Return resp as response to the POST request 
 		PrintWriter pw = response.getWriter();
 		pw.println(resp);
 		pw.flush();
