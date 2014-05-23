@@ -50,7 +50,8 @@ function verifyJSONForVisjsNodes( returnedObject ) {
       returnedNodes[iterator].id = iterator;
       returnedNodes[iterator].label = returnedNodes[iterator].value; //This will write out the nodes label.
       returnedNodes[iterator].title = returnedNodes[iterator].type; //Titles are on mouse-over.
-      returnedNodes[iterator].group = returnedNodes[iterator].type;
+      //returnedNodes[iterator].group = returnedNodes[iterator].type;
+	  returnedNodes[iterator].group = setGroup(returnedNodes[iterator]);
     }
   }
 

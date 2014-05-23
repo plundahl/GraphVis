@@ -19,12 +19,11 @@ var graph;
 Updates the visualization once new information has arrived.
 */
 function updateVisualization( returnedObject ) {
+	var node = verifyJSONForVisjsNodes( returnedObject );
+	var edge = verifyJSONForVisjsEdges( returnedObject );
 
-  var node = verifyJSONForVisjsNodes( returnedObject );
-  var edge = verifyJSONForVisjsEdges( returnedObject );
-
-  // create a graph
-  var container = document.getElementById('mygraph');
+	// create a graph
+	var container = document.getElementById('mygraph');
 
 	nodes = new vis.DataSet();
 	nodes.add(node);
@@ -35,23 +34,23 @@ function updateVisualization( returnedObject ) {
 	data = {
     nodes: nodes,
     edges: edges
-  };
-  options = {
-	nodes: {},
-	edges:{style:'arrow'},
-    clustering: {enabled: false},
-    stabilize: false,
-    physics:
-      {barnesHut:
-        {enabled:true}}
-  };
+	};
+	options = {
+		nodes: {},
+		edges:{style:'arrow'},
+		groups: colorOptions,
+		clustering: {enabled: false},
+		stabilize: false,
+		physics:
+		{barnesHut:
+			{enabled:true}}
+	};
 
   graph = new vis.Graph(container, data, options);
 
   var selection = graph.getSelection();
   graph.on('doubleClick', removeNodes);
   graph.on('click', click);
-
 }
 
 /* Function for removing nodes.*/
