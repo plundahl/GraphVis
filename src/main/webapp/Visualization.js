@@ -14,7 +14,6 @@ var nodeGroup = [];
 var nodes;
 var edges;
 var graph;
-var GraphVisVisualization = {};
 
 /*
 Updates the visualization once new information has arrived.
@@ -68,7 +67,7 @@ function click(d){
 }
 
 /* A function used for filtering out same nodes as the selected one and implodes the nodes to one node. Several bugs still. */
-function doubleClick(d) {
+function filterOnType(d) {
 	var clickedNode = nodes.get(d.nodes[0]);
 	for(var i = 0; i<nodeGroup.length;i++){
 		if(clickedNode.type == nodeGroup[i]){
