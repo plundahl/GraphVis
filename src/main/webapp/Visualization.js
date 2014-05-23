@@ -22,9 +22,7 @@ Updates the visualization once new information has arrived.
 function updateVisualization( returnedObject ) {
 
   var node = verifyJSONForVisjsNodes( returnedObject );
-  //console.log(node);
   var edge = verifyJSONForVisjsEdges( returnedObject );
-  //console.log(edge);
 
   // create a graph
   var container = document.getElementById('mygraph');
@@ -40,8 +38,8 @@ function updateVisualization( returnedObject ) {
     edges: edges
   };
   options = {
-	nodes: {}, //label : true, title : true
-	edges:{style:'arrow'}, //length : 80 , label : true, title : true
+	nodes: {},
+	edges:{style:'arrow'},
     clustering: {enabled: false},
     stabilize: false,
     physics:
@@ -52,34 +50,28 @@ function updateVisualization( returnedObject ) {
   graph = new vis.Graph(container, data, options);
 
   var selection = graph.getSelection();
-	graph.on('doubleClick', removeNodes); //Byt ut removeNodes till doubleClick för att testa gruppfiltrering
+  graph.on('doubleClick', removeNodes);
   graph.on('click', click);
 
 }
 
-/* Funktion för dubbelklick, används just nu för att ta bort enstaka noder.*/
+/* Function for removing nodes.*/
 function removeNodes(d){
-	/*
-	console.log(d.data);
-	var item1 = nodes.get(1);
-	console.log('item1', item1);
-	*/
 	nodes.remove(d.nodes[0]);
 	graph.redraw();
 }
 
-/* Skriver ut namnet på nod. */
+/* Prints out the selected name in the console, for debugging purpose. */
 function click(d){
 	var nameOfNode = nodes.get(d.nodes[0]).label;
 	console.log(nameOfNode);
 }
 
-/* Tar bort den grupp som objektet som dubbelklickas på tillhör. Klicka igen och noderna återställs. BUGGIGT*/
+/* A function used for filtering out same nodes as the selected one and implodes the nodes to one node. Several bugs still. */
 function doubleClick(d) {
 	var clickedNode = nodes.get(d.nodes[0]);
 	for(var i = 0; i<nodeGroup.length;i++){
 		if(clickedNode.type == nodeGroup[i]){
-			console.log('funkar');
 			nodes.add(filteredNodes.get());
 			filteredNodes.clear();
 			nodeGroup.splice(i,0);
@@ -89,20 +81,14 @@ function doubleClick(d) {
 	}
 	var items = nodes.get({
 	  filter: function (item) {
-		if(item.id != clickedNode.id){ //Vill spara noden som klickades på
-		return item.type == nodes.get(d.nodes[0]).type;} //Kan såklart bytas mot annan egenskap.
-	}
+		if(item.id != clickedNode.id){
+		return item.type == nodes.get(d.nodes[0]).type;}
+		}
 	});
-	//console.log('filtered items', items);
 	items = _.difference(items, clickedNode);
 	filteredNodes.add(items);
 	nodeGroup.push(clickedNode.type);
 	nodes.remove(items);
 	graph.redraw();
 }
-/* Används inte just nu.
-function implodeNodes(array,origin){
-	array = _.difference(array,origin); //Tar bort noden som klickades på.
-	nodes = _.difference(nodes, array); //Tar bort alla grannar till noden i miserables.
-}*/
 
